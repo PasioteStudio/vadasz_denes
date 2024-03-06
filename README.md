@@ -1,2 +1,2 @@
-# vad-sz_d-nes
+# vadasz_denes
 Versenyre
