@@ -1,10 +1,3 @@
-#5 FŐ DOLOG:
-#Gyöngy távolsága
-#Gyöngy értéke
-#Idő (+ Visszafele is betudjon zsebelni pontot)
-#Gyöngyök elhelyezkedése egymástól
-#Sebesség
-#2024. április 3. 23:59
 import math     
 def tavolsag(x1, y1, z1, x2, y2, z2):
     tav = 0.0
