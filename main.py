@@ -3,7 +3,7 @@
 #Gyöngy értéke
 #Idő (+ Visszafele is betudjon zsebelni pontot)
 #Gyöngyök elhelyezkedése egymástól
-
+#Sebesség
 
 import math     
 def tavolsag(x1, y1, z1, x2, y2, z2):
