@@ -55,7 +55,6 @@ def build_graph(data):
             if this != another_point:
                 if this not in graph:
                     graph[this] = {}
-
                 graph[this][another_point] = get_length(data[this][0], data[this][1], data[this][2],data[this][3],data[another_point][0],
                                                         data[another_point][1],data[another_point][2],data[another_point][3])
 
