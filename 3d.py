@@ -121,8 +121,6 @@ class QPygletWidget(QGLWidget):
                 for name, mesh in self.scene.geometry.items():
                     mesh.apply_transform(matrix)
 
-                # Render the scene (you may want to display it in a viewer or save frames as images)
-                # Here, we'll just pause for a short time to simulate animation
                 time.sleep(1)  # Adjust the sleep time as needed for your desired animation speed
 
             # Animation loop finished
