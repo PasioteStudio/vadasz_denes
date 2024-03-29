@@ -87,11 +87,11 @@ class QPygletWidget(QGLWidget):
             # Render the scene (you may want to display it in a viewer or save frames as images)
             # Here, we'll just pause for a short time to simulate animation
             self.update()
-            time.sleep(0.1)  # Adjust the sleep time as needed for your desired animation speed
+            time.sleep(0.05)
 
         # Animation loop finished
         print("Animation finished")
-        self.run_animation()
+        self.run_animation(0,stop_event=stop_event)
     def asda(self):
         print("sfd")
         if False:
@@ -121,8 +121,6 @@ class QPygletWidget(QGLWidget):
                 for name, mesh in self.scene.geometry.items():
                     mesh.apply_transform(matrix)
 
-                # Render the scene (you may want to display it in a viewer or save frames as images)
-                # Here, we'll just pause for a short time to simulate animation
                 time.sleep(1)  # Adjust the sleep time as needed for your desired animation speed
 
             # Animation loop finished
