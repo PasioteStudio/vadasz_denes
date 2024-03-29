@@ -48,11 +48,9 @@ class QPygletWidget(QGLWidget):
         glRotatef(self.yRot, 0.0, 1.0, 0.0)
         glRotatef(self.zRot, 0.0, 0.0, 1.0)
         if self.scene:
-            print(len(self.scene.geometry.values()))
             cur=0
             for name, mesh in self.scene.geometry.items():
                 material:PBRMaterial=mesh.visual.material
-                print(f"{cur};{material.main_color}")
                 cur+=1
                 self.render_mesh(mesh)
         
@@ -68,11 +66,8 @@ class QPygletWidget(QGLWidget):
 
         for frame in range(num_frames):
             if stop_event.is_set():
-                print("Animation stopped")
                 return
 
-            # Clear the scene and print the current frame number
-            print(f"Frame {frame+1}/{num_frames}")
 
             # Define the rotation matrix for the current frame
             angle =math.pi /100  # Angle for the current frame
@@ -90,10 +85,8 @@ class QPygletWidget(QGLWidget):
             time.sleep(0.05)
 
         # Animation loop finished
-        print("Animation finished")
         self.run_animation(0,stop_event=stop_event)
-    def asda(self):
-        print("sfd")
+
         if False:
             angle = 90  # degrees
             axis = [0, 1, 0]  # y-axis
@@ -108,8 +101,6 @@ class QPygletWidget(QGLWidget):
 
             # Loop for the animation
             for frame in range(num_frames):
-                # Clear the scene and print the current frame number
-                print(f"Frame {frame+1}/{num_frames}")
 
                 # Define the rotation matrix for the current frame
                 angle = angle_increment * frame  # Angle for the current frame
@@ -123,8 +114,6 @@ class QPygletWidget(QGLWidget):
 
                 time.sleep(1)  # Adjust the sleep time as needed for your desired animation speed
 
-            # Animation loop finished
-            print("Animation finished")
     def render_mesh(self, mesh):
         if isinstance(mesh, trimesh.Trimesh):
             # Enable vertex array
@@ -136,15 +125,10 @@ class QPygletWidget(QGLWidget):
             glNormalPointer(GL_FLOAT, 0, mesh.vertex_normals.flatten())
 
             material:PBRMaterial=mesh.visual.material
-            #print(material.main_color[:3])
-            #print(list(material.main_color[:3]))
-            #print([0.0, 0.5, 0.5])
-            # Enable color array
             default_color = [0.0, 0.5, 0.5]
             color=list(material.main_color[:3])
             
             if color not in [[36,140,204],[204,172,0],[255,4,0],[0,0,0] ,[0,12,38], [1,0,33],[204,172,0]]:
-                print(f"én{color}")
                 color=[0.5,0.5,0.5]
                 glColor3fv(color)
                 glDrawElements(GL_TRIANGLES, len(mesh.faces) * 3, GL_UNSIGNED_INT, mesh.faces.flatten())
@@ -199,7 +183,7 @@ class MainWindow(QMainWindow):
         sidebar_widget.setLayout(sidebar_layout)
         sidebar_widget.setFixedWidth(200)
 
-        scene = trimesh.load("W:/vadasz_deni/submarine.glb")
+        scene = trimesh.load("submarine.glb")
 
         # Create a QPygletWidget and add it to the layout
 
@@ -215,7 +199,6 @@ class MainWindow(QMainWindow):
         self.glWidget.cubeVisible = not self.glWidget.cubeVisible
         self.glWidget.update()
     def closeEvent(self, event):
-        print(f"closing PyQtTest")
         stop_event.set()
         # report_session()
     
