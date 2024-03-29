@@ -29,6 +29,7 @@ class Jatek():
         sorok=fajl.readlines()
         fajl.close()
         self.GYONGYOK=[]
+        #test
         for sor in sorok:
             reszek=sor.strip().split(";")
             if not reszek[0].isnumeric():
