@@ -151,7 +151,7 @@ def main(all_time,velocity):
         main_util.print_edges_with_weight(initial_g)
         initial_g.plot_graph(os.path.join(debug_folder, "graph.png"))
 
-    # TODO : Validation of the graph: triangle inequality property
+    #todo Validation of the graph: triangle inequality property
 
     # create a MST
     mst_graph = main_util.get_mst(initial_g)
