@@ -125,10 +125,10 @@ class QPygletWidget(QGLWidget):
             glNormalPointer(GL_FLOAT, 0, mesh.vertex_normals.flatten())
 
             material:PBRMaterial=mesh.visual.material
-            default_color = [0.0, 0.5, 0.5]
+            default_color = [0.0, 0.0, 0.0]
             color=list(material.main_color[:3])
             
-            if color not in [[36,140,204],[204,172,0],[255,4,0],[0,0,0] ,[0,12,38], [1,0,33],[204,172,0]]:
+            if color not in [[36,140,204],[0,0,0],[255,0,0],[0,0,0] ,[0,12,38], [1,0,33],[204,172,0]]:
                 color=[0.5,0.5,0.5]
                 glColor3fv(color)
                 glDrawElements(GL_TRIANGLES, len(mesh.faces) * 3, GL_UNSIGNED_INT, mesh.faces.flatten())
@@ -163,21 +163,6 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout()
 
         sidebar_layout = QVBoxLayout()
-        slider = QSlider(Qt.Horizontal)
-        slider.setFocusPolicy(Qt.StrongFocus)
-        slider.setTickPosition(QSlider.TicksBothSides)
-        slider.setTickInterval(10)
-        slider.setSingleStep(1)
-
-
-        vbox = QVBoxLayout()
-        vbox.addWidget(slider)
-        vbox.addStretch(1)
-
-        btn_render_cube = QPushButton("Szimuláció elkezdése", self)
-        btn_render_cube.clicked.connect(self.toggle_cube_visibility)
-        sidebar_layout.addWidget(btn_render_cube)
-        sidebar_layout.addWidget(slider)
 
         sidebar_widget = QWidget()
         sidebar_widget.setLayout(sidebar_layout)
