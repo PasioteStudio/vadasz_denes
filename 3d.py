@@ -87,7 +87,7 @@ class QPygletWidget(QGLWidget):
             # Render the scene (you may want to display it in a viewer or save frames as images)
             # Here, we'll just pause for a short time to simulate animation
             self.update()
-            time.sleep(0.05)  # Adjust the sleep time as needed for your desired animation speed
+            time.sleep(0.05)
 
         # Animation loop finished
         print("Animation finished")
