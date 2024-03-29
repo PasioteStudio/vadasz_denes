@@ -8,7 +8,6 @@ from py3d import Vector3 as V3
 import networkx as nx
 import matplotlib.pyplot as plt
 import munkres as HU
-
 #The class representing points
 class ˇPoints():
     def __init__(self, position, value):
@@ -90,7 +89,7 @@ def show_graph(graph):
     plt.show()
 
 #This function takes in a list of nodes, and creates an MWPM (Minimum Weight Perfect Matching) and outputs it in E-format
-def finding_MWPM(nodes):
+def finding_MWPM(data,nodes):
     nodes=select_odd(nodes)
     #Constructing matrix for the Hungarian (Kunh Munkres) algorithm to work with
     result = []
@@ -163,11 +162,12 @@ def get_efficiency_of_tsp(data,mst,tps):
 and the length of the tsp is {get_weight_of_tour(data,tps)}
 the proportion of those is {get_weight_of_tour(data,tps)/get_weight_of_tour(data,mst)}""")
 
-#Run the program here:
-data = data_input("gyongyok.txt") #Raw D-format, contains all the points, their ID, value, and position in V3
-mst = finding_mst(data) #Minimum Spanning Tree
-ug = mst+finding_MWPM(mst) #Uniform Graph, the sum of an mst and an eulerian tour
-tsp = find_TSP(find_eulerian_tour(ug)) #TSP Traveling Salesman Problem solution
-print(tsp)
-get_efficiency_of_tsp(data,mst,tsp)
-
+def run():
+    #Run the program here:
+    data = data_input("gyongyok.txt") #Raw D-format, contains all the points, their ID, value, and position in V3
+    mst = finding_mst(data) #Minimum Spanning Tree
+    ug = mst+finding_MWPM(data,mst) #Uniform Graph, the sum of an mst and an eulerian tour
+    tsp = find_TSP(find_eulerian_tour(ug)) #TSP Traveling Salesman Problem solution
+    print(tsp)
+    get_efficiency_of_tsp(data,mst,tsp)
+    return tsp
