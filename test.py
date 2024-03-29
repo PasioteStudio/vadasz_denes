@@ -45,7 +45,7 @@ def tsp(data):
 
 
 def get_length(x1, y1,z1,e1, x2, y2,z2,e2):
-    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)//e1//e2
+    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)/e1/e2
 
 
 def build_graph(data):
@@ -196,9 +196,8 @@ def remove_edge_from_matchedMST(MatchedMST, v1, v2):
 
 
 points = [
-    [0, 0,0,1], [3, 0,0,1], [6, 0,0,1],
-    [0, 3,0,1], [3, 3,0,1], [6, 3,0,1],
-  	[0, 6,0,1], [3, 6,0,1], [6, 6,0,1]
+    [1, 1,1,2], [2, 2,2,3], [3, 3,3,1],
+    [4, 4,4,1], [5, 5,5,1]
 ]
 
 length, path = tsp(points)
