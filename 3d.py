@@ -19,6 +19,17 @@ import threading
 import time
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QGridLayout, QGroupBox,QMenu, QPushButton, QRadioButton, QVBoxLayout, QWidget, QSlider,)
 from PIL import Image
+
+colors={
+    "[36, 140, 204]":[36, 140, 204],
+    "[0, 0, 0]":[0,0,0],
+    "[255, 0, 0]":[255, 0, 0],
+    "[0, 12, 38]":[0, 12, 38], 
+    "[1, 0, 33]":[1, 0, 33],
+    "[204, 172, 0]":[204, 172, 0],
+    "[13, 13, 13]":[13, 13, 13],
+    "[255, 4, 0]":[255, 4, 0],
+}
 stop_event = threading.Event()
 class QPygletWidget(QGLWidget):
     def __init__(self, scene:trimesh.Scene, parent=None):
@@ -48,11 +59,9 @@ class QPygletWidget(QGLWidget):
         glRotatef(self.yRot, 0.0, 1.0, 0.0)
         glRotatef(self.zRot, 0.0, 0.0, 1.0)
         if self.scene:
-            print(len(self.scene.geometry.values()))
             cur=0
             for name, mesh in self.scene.geometry.items():
                 material:PBRMaterial=mesh.visual.material
-                print(f"{cur};{material.main_color}")
                 cur+=1
                 self.render_mesh(mesh)
         
@@ -68,11 +77,8 @@ class QPygletWidget(QGLWidget):
 
         for frame in range(num_frames):
             if stop_event.is_set():
-                print("Animation stopped")
                 return
 
-            # Clear the scene and print the current frame number
-            print(f"Frame {frame+1}/{num_frames}")
 
             # Define the rotation matrix for the current frame
             angle =math.pi /100  # Angle for the current frame
@@ -90,10 +96,8 @@ class QPygletWidget(QGLWidget):
             time.sleep(0.05)
 
         # Animation loop finished
-        print("Animation finished")
         self.run_animation(0,stop_event=stop_event)
-    def asda(self):
-        print("sfd")
+
         if False:
             angle = 90  # degrees
             axis = [0, 1, 0]  # y-axis
@@ -108,8 +112,6 @@ class QPygletWidget(QGLWidget):
 
             # Loop for the animation
             for frame in range(num_frames):
-                # Clear the scene and print the current frame number
-                print(f"Frame {frame+1}/{num_frames}")
 
                 # Define the rotation matrix for the current frame
                 angle = angle_increment * frame  # Angle for the current frame
@@ -123,8 +125,6 @@ class QPygletWidget(QGLWidget):
 
                 time.sleep(1)  # Adjust the sleep time as needed for your desired animation speed
 
-            # Animation loop finished
-            print("Animation finished")
     def render_mesh(self, mesh):
         if isinstance(mesh, trimesh.Trimesh):
             # Enable vertex array
@@ -136,22 +136,11 @@ class QPygletWidget(QGLWidget):
             glNormalPointer(GL_FLOAT, 0, mesh.vertex_normals.flatten())
 
             material:PBRMaterial=mesh.visual.material
-            #print(material.main_color[:3])
-            #print(list(material.main_color[:3]))
-            #print([0.0, 0.5, 0.5])
-            # Enable color array
-            default_color = [0.0, 0.5, 0.5]
+            default_color = [0.0, 0.0, 0.0]
             color=list(material.main_color[:3])
-            
-            if color not in [[36,140,204],[204,172,0],[255,4,0],[0,0,0] ,[0,12,38], [1,0,33],[204,172,0]]:
-                print(f"én{color}")
-                color=[0.5,0.5,0.5]
-                glColor3fv(color)
-                glDrawElements(GL_TRIANGLES, len(mesh.faces) * 3, GL_UNSIGNED_INT, mesh.faces.flatten())
-            else:
-                
-                glColor3fv(color)
-                glDrawElements(GL_TRIANGLES, len(mesh.faces) * 3, GL_UNSIGNED_INT, mesh.faces.flatten())
+            color=colors[str(color)]
+            glColor3fv(color)
+            glDrawElements(GL_TRIANGLES, len(mesh.faces) * 3, GL_UNSIGNED_INT, mesh.faces.flatten())
             # Draw the mesh
             
             # Disable arrays
@@ -179,27 +168,12 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout()
 
         sidebar_layout = QVBoxLayout()
-        slider = QSlider(Qt.Horizontal)
-        slider.setFocusPolicy(Qt.StrongFocus)
-        slider.setTickPosition(QSlider.TicksBothSides)
-        slider.setTickInterval(10)
-        slider.setSingleStep(1)
-
-
-        vbox = QVBoxLayout()
-        vbox.addWidget(slider)
-        vbox.addStretch(1)
-
-        btn_render_cube = QPushButton("Szimuláció elkezdése", self)
-        btn_render_cube.clicked.connect(self.toggle_cube_visibility)
-        sidebar_layout.addWidget(btn_render_cube)
-        sidebar_layout.addWidget(slider)
 
         sidebar_widget = QWidget()
         sidebar_widget.setLayout(sidebar_layout)
         sidebar_widget.setFixedWidth(200)
 
-        scene = trimesh.load("W:/vadasz_deni/submarine.glb")
+        scene = trimesh.load("submarine.glb")
 
         # Create a QPygletWidget and add it to the layout
 
@@ -215,7 +189,6 @@ class MainWindow(QMainWindow):
         self.glWidget.cubeVisible = not self.glWidget.cubeVisible
         self.glWidget.update()
     def closeEvent(self, event):
-        print(f"closing PyQtTest")
         stop_event.set()
         # report_session()
     
