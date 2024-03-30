@@ -39,7 +39,7 @@ class QPygletWidget(QGLWidget):
         self.yRot = 0
         self.zRot = 0
         self.setFocusPolicy(Qt.StrongFocus)
-        animation_thread = threading.Thread(target=self.run_animation,args=(0,stop_event))
+        animation_thread = threading.Thread(target=self.run_animation,args=(stop_event,3,1/12))
         animation_thread.start()
 
     def initializeGL(self):
@@ -71,15 +71,17 @@ class QPygletWidget(QGLWidget):
         glLoadIdentity()
         gluPerspective(45, width / height, 0.1, 50.0)
         glMatrixMode(GL_MODELVIEW)
-    def run_animation(self,asd,stop_event:threading.Event):
-        num_frames = 1000  # Number of frames in the animation
+    def run_animation(self,stop_event:threading.Event,how_long_sec:int=-1,fps:float=1/12):
+        """fps #frame/sec Number of frames in the animation like 1/12
+        
+        """
         angle_increment = 1  # Angle increment per frame
-
-        for frame in range(num_frames):
+        current_time=0
+        while current_time*fps<how_long_sec or how_long_sec == -1:
             if stop_event.is_set():
                 return
-
-
+            
+            print(current_time)
             # Define the rotation matrix for the current frame
             angle =math.pi /100  # Angle for the current frame
             axis = [0, 1, 0]  # y-axis
@@ -93,37 +95,11 @@ class QPygletWidget(QGLWidget):
             # Render the scene (you may want to display it in a viewer or save frames as images)
             # Here, we'll just pause for a short time to simulate animation
             self.update()
-            time.sleep(0.05)
+            current_time+=1
+            time.sleep(fps)
 
         # Animation loop finished
-        self.run_animation(0,stop_event=stop_event)
-
-        if False:
-            angle = 90  # degrees
-            axis = [0, 1, 0]  # y-axis
-            center = [0, 0, 0]  # origin
-            matrix = trimesh.transformations.rotation_matrix(angle, axis, center)
-            # Apply the transformation to the scene
-            for name, mesh in self.scene.geometry.items():
-                mesh.apply_transform(matrix)
-        if True:
-            num_frames = 100  # Number of frames in the animation
-            angle_increment = 360 / num_frames  # Angle increment per frame
-
-            # Loop for the animation
-            for frame in range(num_frames):
-
-                # Define the rotation matrix for the current frame
-                angle = angle_increment * frame  # Angle for the current frame
-                axis = [0, 1, 0]  # y-axis
-                center = [0, 0, 0]  # origin
-                matrix = trimesh.transformations.rotation_matrix(angle, axis, center)
-
-                # Apply the rotation to each mesh in the scene
-                for name, mesh in self.scene.geometry.items():
-                    mesh.apply_transform(matrix)
-
-                time.sleep(1)  # Adjust the sleep time as needed for your desired animation speed
+        print("Finished")
 
     def render_mesh(self, mesh):
         if isinstance(mesh, trimesh.Trimesh):
