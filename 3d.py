@@ -19,6 +19,17 @@ import threading
 import time
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QGridLayout, QGroupBox,QMenu, QPushButton, QRadioButton, QVBoxLayout, QWidget, QSlider,)
 from PIL import Image
+
+colors={
+    "[36, 140, 204]":[36, 140, 204],
+    "[0, 0, 0]":[0,0,0],
+    "[255, 0, 0]":[255, 0, 0],
+    "[0, 12, 38]":[0, 12, 38], 
+    "[1, 0, 33]":[1, 0, 33],
+    "[204, 172, 0]":[204, 172, 0],
+    "[13, 13, 13]":[13, 13, 13],
+    "[255, 4, 0]":[255, 4, 0],
+}
 stop_event = threading.Event()
 class QPygletWidget(QGLWidget):
     def __init__(self, scene:trimesh.Scene, parent=None):
@@ -127,15 +138,9 @@ class QPygletWidget(QGLWidget):
             material:PBRMaterial=mesh.visual.material
             default_color = [0.0, 0.0, 0.0]
             color=list(material.main_color[:3])
-            
-            if color not in [[36,140,204],[0,0,0],[255,0,0],[0,0,0] ,[0,12,38], [1,0,33],[204,172,0]]:
-                color=[0.5,0.5,0.5]
-                glColor3fv(color)
-                glDrawElements(GL_TRIANGLES, len(mesh.faces) * 3, GL_UNSIGNED_INT, mesh.faces.flatten())
-            else:
-                
-                glColor3fv(color)
-                glDrawElements(GL_TRIANGLES, len(mesh.faces) * 3, GL_UNSIGNED_INT, mesh.faces.flatten())
+            color=colors[str(color)]
+            glColor3fv(color)
+            glDrawElements(GL_TRIANGLES, len(mesh.faces) * 3, GL_UNSIGNED_INT, mesh.faces.flatten())
             # Draw the mesh
             
             # Disable arrays
