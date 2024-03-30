@@ -28,10 +28,12 @@ def data_input(filename):
     f = open(filename)
     f.readline()
     data = {}
+    #Kezdőpont
+    data[0] = ˇPoints(V3(0,0,0),1)
     for c, i in enumerate(f.readlines()):
         #Where c is the curet line, and i is it's content
         i = list_to_int(str(i).strip().split(";")[0:4])
-        data[c] = ˇPoints(V3(i[0],i[1],i[2]),i[3])
+        data[c+1] = ˇPoints(V3(i[0],i[1],i[2]),i[3])
     return data #This outputs a dictionary, names are the corresponding lines, the words are 'ˇPoints' classes. Let's call this format D-format from here.
 
 
