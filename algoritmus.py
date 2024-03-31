@@ -1,6 +1,5 @@
 import os
 import itertools
-
 import utils.main_util as main_util
 from utils.graph import Graph
 import math
@@ -10,20 +9,18 @@ def getLength(x1,y1,z1,e1,x2,y2,z2,e2):
 def getLengthProper(x1,y1,z1,x2,y2,z2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)
 def getRealPathValues(path:list[dict]):
-    print(path)
     legth=[]
     for id,point in enumerate(path):
-        print(point)
         if id != len(path)-1:
             legth.append(getLengthProper(point["x"],point["y"],point["z"],path[id+1]["x"],path[id+1]["y"],path[id+1]["z"]))
         else:
             pass
     return legth
-        
-def initInput():
+def initInput(temporary_points):
     f=open("gyongyok.txt","r+",encoding="utf8")
     lines=f.readlines()
     f.close()
+    temporary_points.append({"x":0,"y":0,"z":0,"e":1})#Kezdőpont
     for id,line in enumerate(lines):
         if id == 0:
             continue
@@ -33,8 +30,6 @@ def initInput():
                                  "z":int(parts[2]),
                                  "e":int(parts[3])})
     complete_lines=[]
-    number_of_completed_lines=reduce(lambda x, y:x+y, range(len(temporary_points)))
-    print(number_of_completed_lines)
     for id,point in enumerate(temporary_points):
         for i in range(len(temporary_points)-id-1):
             path=getLength(point["x"],point["y"],point["z"],point["e"],temporary_points[id+i+1]["x"],temporary_points[id+i+1]["y"],temporary_points[id+i+1]["z"],temporary_points[id+i+1]["e"])
@@ -42,10 +37,109 @@ def initInput():
             print(f"{point},{temporary_points[id+i+1]},{path}")
             complete_lines.append(f"{id+1},{id+i+2},{path}")
     return complete_lines
-if __name__ == '__main__':
+def getResultPeti():
+    import peti_alg
+    elements = peti_alg.run()
+    in_order=[]
+    for id,element in enumerate(elements):
+        in_order.append(element[0])
+        if id == len(elements)-1:
+            in_order.append(element[1])
+    peti=list(map(lambda x: str(x+1),in_order))
+    #Nem 1től 1ig megy, ki kell javítani a kört
+    kijavitott=[]
+    egyes=peti.index('1')
+    for id,szam in enumerate(peti):
+        if id==len(peti)-1:
+            kijavitott.append(peti[egyes])
+        elif egyes+id >= len(peti):
+            kijavitott.append(peti[id-len(peti)+egyes+1])
+        else:
+            kijavitott.append(peti[egyes+id])
+    return kijavitott
+def getInTime(path_distances:list[float],path_times:list[float],path_points:list[dict],time:float,velocity:float):
+    path_value=[]
+    #meg kell győzödni, hogy nem tudjuk körbejárni az adott idő alatt
+    if not reduce(lambda x, y:x+y, path_times) > time:
+        for id,point in enumerate(path_points):
+            if id==0 or id==len(path_points)-1:
+                path_value.append(0)
+                continue
+            path_value.append(point["e"])
+        return path_distances,path_times,path_points,path_value
+    #Első szegmens, előről
+    temp_path_points_front=[path_points[0]]
+    temp_path_times_front=[]
+    temp_path_distances_front=[]
+    currentTime=0
+    while currentTime <= time/2:
+        will_be=path_times[len(temp_path_points_front)-1]
+        if will_be+currentTime <= time/2:
+            currentTime+=will_be
+            temp_path_points_front.append(path_points[len(temp_path_points_front)])
+            temp_path_times_front.append(will_be)
+            temp_path_distances_front.append(path_distances[len(temp_path_points_front)])
+        else:
+            break
+    #Második szegmens, hátulról
+    temp_path_points_back=[path_points[-1]]
+    temp_path_times_back=[]
+    temp_path_distances_back=[]
+    currentTime=0
+    path_times.reverse()
+    path_points.reverse()
+    path_distances.reverse()
+    while currentTime <= time/2:
+        will_be=path_times[len(temp_path_points_back)-1]
+        if will_be+currentTime <= time/2:
+            currentTime+=will_be
+            temp_path_points_back.append(path_points[len(temp_path_points_back)])
+            temp_path_times_back.append(will_be)
+            temp_path_distances_back.append(path_distances[len(temp_path_points_back)])
+        else:
+            break
+    #Összekötjük őket (a hátulról menő arrayt, az elülről menő arrayel)
+    #Megnézzük, hogy jó-e így
+    while reduce(lambda x, y:x+y, temp_path_times_back+temp_path_times_front+[getLengthProper(temp_path_points_front[-1]["x"],
+                                                                                              temp_path_points_front[-1]["y"],
+                                                                                              temp_path_points_front[-1]["z"],
+                                                                                              temp_path_points_back[-1]["x"],
+                                                                                              temp_path_points_back[-1]["y"],
+                                                                                              temp_path_points_back[-1]["z"])/velocity]) > time:
+        if temp_path_points_front[-1]["e"]/temp_path_times_front[-1] > temp_path_points_back[-1]["e"]/temp_path_times_back[-1]:
+            temp_path_distances_back.pop()
+            temp_path_times_back.pop()
+            temp_path_points_back.pop()
+        else:
+            temp_path_distances_front.pop()
+            temp_path_times_front.pop()
+            temp_path_points_front.pop()
+    #összekötés
+    connection=getLengthProper(temp_path_points_front[-1]["x"],
+                                temp_path_points_front[-1]["y"],
+                                temp_path_points_front[-1]["z"],
+                                temp_path_points_back[-1]["x"],
+                                temp_path_points_back[-1]["y"],
+                                temp_path_points_back[-1]["z"])
+    temp_path_points_back.reverse()
+    temp_path_times_back.reverse()
+    temp_path_distances_back.reverse()
+    
+    merged_path_points=temp_path_points_front+temp_path_points_back
+    merged_path_times=temp_path_times_front+temp_path_times_back+[connection/velocity]
+    merged_path_distances=temp_path_distances_front+temp_path_distances_back+[connection]
+    
+    for id,point in enumerate(merged_path_points):
+        if id==0 or id==len(merged_path_points)-1:
+            path_value.append(0)
+            continue
+        path_value.append(point["e"])
+    
+    return merged_path_distances,merged_path_times,merged_path_points,path_value
+def main(all_time,velocity):
     #x;y;z;e to vertext to vertex format
     temporary_points=[]
-    complete_lines=initInput()
+    complete_lines=initInput(temporary_points)
     debug_folder = r"output/"
     source_node = "1"
     debug = True
@@ -64,8 +158,7 @@ if __name__ == '__main__':
         main_util.print_edges_with_weight(initial_g)
         initial_g.plot_graph(os.path.join(debug_folder, "graph.png"))
 
-    # TODO : Validation of the graph: triangle inequality property
-
+    #todo Validation of the graph: triangle inequality property
     # create a MST
     mst_graph = main_util.get_mst(initial_g)
     if debug:
@@ -125,9 +218,7 @@ if __name__ == '__main__':
                                 initial_g.get_edge_weight(euler_tour[i], euler_tour[i+1]))
         final_path.plot_graph(os.path.join(debug_folder, "output.png"))
     all_path,total_weight = main_util.get_total_cost(initial_g, euler_tour)
-    peti=['5','4','3','2','1','5']
-    alternative_path,alternative=main_util.get_total_cost(initial_g,peti)
-    print(alternative)
+    peti=getResultPeti()
     print(f"Total traveling cost : {total_weight}")
     
     all_points1=[]
@@ -148,8 +239,7 @@ if __name__ == '__main__':
     a2=getRealPathValues(all_points2)
     t1=[]
     t2=[]
-    if True:
-        velocity=float(input("Sebesség(float)(e/s):"))
+    if velocity:
         for path in a1:
             time=path/velocity
             t1.append(time)
@@ -160,4 +250,18 @@ if __name__ == '__main__':
     #print(f"with value{all_path};{total_weight},")
     print(f"PetiDebug: path:{peti},cost:{a2};{reduce(lambda x, y:x+y, a2)},{list(map(lambda x: x["e"],all_points2))},time:{t2};{reduce(lambda x, y:x+y, t2)}")
     #print(f"with value{alternative_path};{alternative},")
-    
+    path_distances,path_times,path_points,path_value=getInTime(a1,t1,all_points1,all_time,velocity)
+    print(f"1{path_points}")
+    print(f"2 Idő:{reduce(lambda x, y:x+y,path_times)}/{time},{path_times}")
+    print(f"3 Hossz: {reduce(lambda x, y:x+y,path_distances)},{path_distances}")
+    print(f"4 Pont: {reduce(lambda x, y:x+y,path_value)},{path_value}")
+    print(f"Peti\n\n\n\n")
+    path_distances,path_times,path_points,path_value=getInTime(a2,t2,all_points2,all_time,velocity)
+    print(f"1{path_points}")
+    print(f"2 Idő:{reduce(lambda x, y:x+y,path_times)}/{time},{path_times}")
+    print(f"3 Hossz: {reduce(lambda x, y:x+y,path_distances)},{path_distances}")
+    print(f"4 Pont: {reduce(lambda x, y:x+y,path_value)},{path_value}")
+if __name__ == "__main__":
+    velocity=float(input("Sebesség(float)(e/s):"))
+    time=float(input("Idő(float)(s):"))
+    main(time,velocity)
