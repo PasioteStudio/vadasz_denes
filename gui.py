@@ -12,12 +12,19 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
+    def setupUi(self, MainWindow:QtWidgets.QMainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1006, 657)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setObjectName("centralwidget")
-        self.scrollArea = QtWidgets.QScrollArea(self.centralwidget)
+        self.mainLayout = QtWidgets.QGridLayout(MainWindow)
+        self.mainLayout.setObjectName("mainLayout")
+        MainWindow.setStyleSheet(MainWindow.styleSheet()+"""
+                                 *{
+                                     border: 10px solid blue;
+                                 }
+                                 """)
+        MainWindow.setLayout(self.mainLayout)
+        self.scrollArea = QtWidgets.QScrollArea(MainWindow)
+        self.mainLayout.addWidget(self.scrollArea,0,2,3,1)
         self.scrollArea.setGeometry(QtCore.QRect(800, 0, 201, 631))
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
@@ -35,9 +42,10 @@ class Ui_MainWindow(object):
         self.rootlabel.setText("")
         self.rootlabel.setObjectName("rootlabel")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.sidebar = QtWidgets.QWidget(self.centralwidget)
+        self.sidebar = QtWidgets.QWidget(MainWindow)
         self.sidebar.setGeometry(QtCore.QRect(-1, -1, 201, 631))
         self.sidebar.setObjectName("sidebar")
+        self.mainLayout.addWidget(self.sidebar,0,0,3,1)
         self.velocity = QtWidgets.QSlider(self.sidebar)
         self.velocity.setGeometry(QtCore.QRect(10, 140, 160, 22))
         self.velocity.setOrientation(QtCore.Qt.Horizontal)
@@ -91,7 +99,7 @@ class Ui_MainWindow(object):
         self.label_2.raise_()
         self.label_4.raise_()
         self.time.raise_()
-        self.footerbar = QtWidgets.QWidget(self.centralwidget)
+        self.footerbar = QtWidgets.QWidget(MainWindow)
         self.footerbar.setGeometry(QtCore.QRect(200, 500, 601, 131))
         self.footerbar.setObjectName("footerbar")
         self.startbutton = QtWidgets.QPushButton(self.footerbar)
@@ -103,15 +111,15 @@ class Ui_MainWindow(object):
         self.nextbutton = QtWidgets.QPushButton(self.footerbar)
         self.nextbutton.setGeometry(QtCore.QRect(360, 50, 75, 23))
         self.nextbutton.setObjectName("nextbutton")
-        MainWindow.setCentralWidget(self.centralwidget)
+        #MainWindow.setCentralWidget(MainWindow)
+        print("sdf")
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1006, 21))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
-
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
+        return MainWindow
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))

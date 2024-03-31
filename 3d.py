@@ -112,45 +112,16 @@ class QPygletWidget(QOpenGLWidget):
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.setupUi(self)
-
-        self.pygletWidget = QPygletWidget(scene=trimesh.load("submarine.glb"))
+        print("sf")
+        MainWindowa=self.setupUi(self)
+        print("sdf")
+        #self.pygletWidget = QPygletWidget(scene=trimesh.load("submarine.glb"),parent=MainWindowa)
 
         self.startSim.clicked.connect(self.start_simulation)
         self.loadFileButton.clicked.connect(self.load_file)
         self.startbutton.clicked.connect(self.start_simulation)
         self.prevbutton.clicked.connect(self.previous_simulation)
         self.nextbutton.clicked.connect(self.next_simulation)
-
-        self.setupLayout()
-
-    def setupLayout(self):
-        main_layout = QVBoxLayout()
-
-        top_layout = QHBoxLayout()
-
-        # Left sidebar setup
-        sidebar_left_layout = QVBoxLayout()
-        sidebar_left_layout.addWidget(self.label_5)
-        sidebar_left_layout.addWidget(self.rootlabel)
-        self.sidebar.setLayout(sidebar_left_layout)
-
-        # Right sidebar setup
-        sidebar_right_layout = QVBoxLayout()
-        sidebar_right_layout.addWidget(self.scrollArea)
-        self.sidebar.setGeometry(QtCore.QRect(-1, -1, 201, 631))
-        self.sidebar.setLayout(sidebar_right_layout)
-
-        top_layout.addWidget(self.sidebar)
-        top_layout.addWidget(self.pygletWidget)
-        top_layout.addWidget(self.sidebar)
-
-        main_layout.addLayout(top_layout)
-        main_layout.addWidget(self.footerbar)
-
-        container = QWidget()
-        container.setLayout(main_layout)
-        self.setCentralWidget(container)
 
     def start_simulation(self):
         # Logic for starting the simulation
