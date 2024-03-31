@@ -1,45 +1,36 @@
-from PyQt5.QtGui import QCloseEvent
-from PyQt5.QtOpenGL import QGLWidget
-from pyglet.gl import *
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton
-from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
-from OpenGL.GL import *
-from PyQt5.QtCore import Qt
-from OpenGL.GLUT import *
-from OpenGL.GLU import *
-import numpy as np
 import trimesh
-from trimesh.rendering import *
-from trimesh import transformations
-from trimesh.visual.material import *
-import math
-import scipy
 import threading
 import time
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QGridLayout, QGroupBox,QMenu, QPushButton, QRadioButton, QVBoxLayout, QWidget, QSlider,)
-from PIL import Image
+import numpy as np
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QSlider, QScrollArea, QLabel, QListWidget, QOpenGLWidget
+from PyQt5.QtCore import Qt, QRect
+from OpenGL.GL import *
+from OpenGL.GLUT import *
+from OpenGL.GLU import *
 
-colors={
-    "[36, 140, 204]":[36, 140, 204],
-    "[0, 0, 0]":[0,0,0],
-    "[255, 0, 0]":[255, 0, 0],
-    "[0, 12, 38]":[0, 12, 38], 
-    "[1, 0, 33]":[1, 0, 33],
-    "[204, 172, 0]":[204, 172, 0],
-    "[13, 13, 13]":[13, 13, 13],
-    "[255, 4, 0]":[255, 4, 0],
+colors = {
+    "[36, 140, 204]": [36, 140, 204],
+    "[0, 0, 0]": [0, 0, 0],
+    "[255, 0, 0]": [255, 0, 0],
+    "[0, 12, 38]": [0, 12, 38],
+    "[1, 0, 33]": [1, 0, 33],
+    "[204, 172, 0]": [204, 172, 0],
+    "[13, 13, 13]": [13, 13, 13],
+    "[255, 4, 0]": [255, 4, 0],
 }
+
 stop_event = threading.Event()
-class QPygletWidget(QGLWidget):
-    def __init__(self, scene:trimesh.Scene, parent=None):
+
+class QPygletWidget(QOpenGLWidget):
+    def __init__(self, scene: trimesh.Scene, parent=None):
         super(QPygletWidget, self).__init__(parent)
         self.scene = scene
         self.xRot = 0
         self.yRot = 0
         self.zRot = 0
         self.setFocusPolicy(Qt.StrongFocus)
-        animation_thread = threading.Thread(target=self.run_animation,args=(0,stop_event))
+        animation_thread = threading.Thread(target=self.run_animation, args=(0, stop_event))
         animation_thread.start()
 
     def initializeGL(self):
@@ -48,105 +39,61 @@ class QPygletWidget(QGLWidget):
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
         glEnable(GL_COLOR_MATERIAL)
-        glLightfv(GL_LIGHT0, GL_POSITION, [0.5, 0.5, 1.0, 0.0])  # Light position
+        glLightfv(GL_LIGHT0, GL_POSITION, [0.5, 0.5, 1.0, 0.0])
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
-        glTranslatef(0.0, 0.0, -5.0)  # Move back
+        glTranslatef(0.0, 0.0, -5.0)
         glRotatef(self.xRot, 1.0, 0.0, 0.0)
         glRotatef(self.yRot, 0.0, 1.0, 0.0)
         glRotatef(self.zRot, 0.0, 0.0, 1.0)
         if self.scene:
-            cur=0
             for name, mesh in self.scene.geometry.items():
-                material:PBRMaterial=mesh.visual.material
-                cur+=1
+                material = mesh.visual.material
+                color = list(material.main_color[:3])
+                color = colors[str(color)]
+                glColor3fv(color)
                 self.render_mesh(mesh)
-        
+
     def resizeGL(self, width, height):
         glViewport(0, 0, width, height)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         gluPerspective(45, width / height, 0.1, 50.0)
         glMatrixMode(GL_MODELVIEW)
-    def run_animation(self,asd,stop_event:threading.Event):
-        num_frames = 1000  # Number of frames in the animation
-        angle_increment = 1  # Angle increment per frame
 
+    def run_animation(self, asd, stop_event: threading.Event):
+        num_frames = 1000
+        angle_increment = 1
         for frame in range(num_frames):
             if stop_event.is_set():
                 return
-
-
-            # Define the rotation matrix for the current frame
-            angle =math.pi /100  # Angle for the current frame
-            axis = [0, 1, 0]  # y-axis
-            center = [0, 0, 0]  # origin
+            angle = 3.14 / 100
+            axis = [0, 1, 0]
+            center = [0, 0, 0]
             matrix = trimesh.transformations.rotation_matrix(angle, axis, center)
-
-            # Apply the rotation to each mesh in the scene
             for name, mesh in self.scene.geometry.items():
                 mesh.apply_transform(matrix)
-
-            # Render the scene (you may want to display it in a viewer or save frames as images)
-            # Here, we'll just pause for a short time to simulate animation
             self.update()
             time.sleep(0.05)
 
-        # Animation loop finished
-        self.run_animation(0,stop_event=stop_event)
-
-        if False:
-            angle = 90  # degrees
-            axis = [0, 1, 0]  # y-axis
-            center = [0, 0, 0]  # origin
-            matrix = trimesh.transformations.rotation_matrix(angle, axis, center)
-            # Apply the transformation to the scene
-            for name, mesh in self.scene.geometry.items():
-                mesh.apply_transform(matrix)
-        if True:
-            num_frames = 100  # Number of frames in the animation
-            angle_increment = 360 / num_frames  # Angle increment per frame
-
-            # Loop for the animation
-            for frame in range(num_frames):
-
-                # Define the rotation matrix for the current frame
-                angle = angle_increment * frame  # Angle for the current frame
-                axis = [0, 1, 0]  # y-axis
-                center = [0, 0, 0]  # origin
-                matrix = trimesh.transformations.rotation_matrix(angle, axis, center)
-
-                # Apply the rotation to each mesh in the scene
-                for name, mesh in self.scene.geometry.items():
-                    mesh.apply_transform(matrix)
-
-                time.sleep(1)  # Adjust the sleep time as needed for your desired animation speed
-
     def render_mesh(self, mesh):
         if isinstance(mesh, trimesh.Trimesh):
-            # Enable vertex array
             glEnableClientState(GL_VERTEX_ARRAY)
             glVertexPointer(3, GL_FLOAT, 0, mesh.vertices.flatten())
-            
-            # Enable normal array
             glEnableClientState(GL_NORMAL_ARRAY)
             glNormalPointer(GL_FLOAT, 0, mesh.vertex_normals.flatten())
-
-            material:PBRMaterial=mesh.visual.material
+            material = mesh.visual.material
             default_color = [0.0, 0.0, 0.0]
-            color=list(material.main_color[:3])
-            color=colors[str(color)]
+            color = list(material.main_color[:3])
+            color = colors[str(color)]
             glColor3fv(color)
             glDrawElements(GL_TRIANGLES, len(mesh.faces) * 3, GL_UNSIGNED_INT, mesh.faces.flatten())
-            # Draw the mesh
-            
-            # Disable arrays
             glDisableClientState(GL_VERTEX_ARRAY)
             glDisableClientState(GL_NORMAL_ARRAY)
-            glDisableClientState(GL_COLOR_ARRAY)
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Left:
             self.yRot -= 5
@@ -158,43 +105,69 @@ class QPygletWidget(QGLWidget):
             self.xRot += 5
         self.update()
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-
         self.setWindowTitle("Gyöngykeresés")
         self.setGeometry(50, 150, 1920, 1080)
-
-        layout = QHBoxLayout()
-
+        
+        main_layout = QHBoxLayout()
+        
+        self.sidebar = QWidget()
+        self.sidebar.setFixedWidth(200)
         sidebar_layout = QVBoxLayout()
 
-        sidebar_widget = QWidget()
-        sidebar_widget.setLayout(sidebar_layout)
-        sidebar_widget.setFixedWidth(200)
+        self.scrollArea = QScrollArea()
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollAreaWidgetContents = QWidget()
+        self.listView_2 = QListWidget()
+        self.label_5 = QLabel("Label 5")
+        self.rootlabel = QLabel("Root Label")
+        
+        self.sidebar_layout_setup(sidebar_layout)
 
-        scene = trimesh.load("submarine.glb")
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.sidebar.setLayout(sidebar_layout)
 
-        # Create a QPygletWidget and add it to the layout
-
-        self.pygletWidget = QPygletWidget(scene=scene)
-        layout.addWidget(sidebar_widget)
-        layout.addWidget(self.pygletWidget)
+        self.pygletWidget = QPygletWidget(scene=trimesh.load("submarine.glb"))
+        
+        main_layout.addWidget(self.sidebar)
+        main_layout.addWidget(self.pygletWidget)
 
         container = QWidget()
-        container.setLayout(layout)
+        container.setLayout(main_layout)
         self.setCentralWidget(container)
 
-    def toggle_cube_visibility(self):
-        self.glWidget.cubeVisible = not self.glWidget.cubeVisible
-        self.glWidget.update()
-    def closeEvent(self, event):
-        stop_event.set()
-        # report_session()
-    
+    def sidebar_layout_setup(self, layout):
+        self.velocity = QSlider(Qt.Horizontal)
+        self.time = QSlider(Qt.Horizontal)
+        self.label_4 = QLabel("Dimensions")
+        self.x_slider = QSlider(Qt.Horizontal)
+        self.y_slider = QSlider(Qt.Horizontal)
+        self.z_slider = QSlider(Qt.Horizontal)
+        self.listView = QListWidget()
+        self.startSim = QPushButton("Start Simulation")
+        self.label = QLabel("Settings")
+        self.label_2 = QLabel("Velocity")
+        self.loadFileButton = QPushButton("Load File")
+        self.label_3 = QLabel("Time")
+        
+        layout.addWidget(self.label)
+        layout.addWidget(self.loadFileButton)
+        layout.addWidget(self.label_2)
+        layout.addWidget(self.velocity)
+        layout.addWidget(self.label_3)
+        layout.addWidget(self.time)
+        layout.addWidget(self.label_4)
+        layout.addWidget(self.x_slider)
+        layout.addWidget(self.y_slider)
+        layout.addWidget(self.z_slider)
+        layout.addWidget(self.listView)
+        layout.addWidget(self.startSim)
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     mainWindow = MainWindow()
     mainWindow.show()
-    
     sys.exit(app.exec_())
