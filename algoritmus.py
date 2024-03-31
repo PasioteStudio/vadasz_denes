@@ -136,13 +136,12 @@ def getInTime(path_distances:list[float],path_times:list[float],path_points:list
         path_value.append(point["e"])
     
     return merged_path_distances,merged_path_times,merged_path_points,path_value
-def main(all_time,velocity):
+def main(all_time,velocity,debug=False,Getpeti=False):
     #x;y;z;e to vertext to vertex format
     temporary_points=[]
     complete_lines=initInput(temporary_points)
     debug_folder = r"output/"
     source_node = "1"
-    debug = True
 
     if not os.path.exists(debug_folder):
         os.makedirs(debug_folder)
@@ -218,7 +217,7 @@ def main(all_time,velocity):
                                 initial_g.get_edge_weight(euler_tour[i], euler_tour[i+1]))
         final_path.plot_graph(os.path.join(debug_folder, "output.png"))
     all_path,total_weight = main_util.get_total_cost(initial_g, euler_tour)
-    peti=getResultPeti()
+    
     print(f"Total traveling cost : {total_weight}")
     
     all_points1=[]
@@ -228,39 +227,44 @@ def main(all_time,velocity):
                                 "y":temporary_points[point-1]["y"],
                                 "z":temporary_points[point-1]["z"],
                                 "e":temporary_points[point-1]["e"]})
-    all_points2=[]
-    for point in peti:
-        point=int(point)
-        all_points2.append({"x":temporary_points[point-1]["x"],
-                                "y":temporary_points[point-1]["y"],
-                                "z":temporary_points[point-1]["z"],
-                                "e":temporary_points[point-1]["e"]})
+    
     a1=getRealPathValues(all_points1)
-    a2=getRealPathValues(all_points2)
     t1=[]
-    t2=[]
     if velocity:
         for path in a1:
             time=path/velocity
             t1.append(time)
-        for path in a2:
-            time=path/velocity
-            t2.append(time)
-    print(f"Debug: path:{euler_tour},cost:{a1};{reduce(lambda x, y:x+y, a1)},{list(map(lambda x: x["e"],all_points1))},time:{t1};{reduce(lambda x, y:x+y, t1)}")
-    #print(f"with value{all_path};{total_weight},")
-    print(f"PetiDebug: path:{peti},cost:{a2};{reduce(lambda x, y:x+y, a2)},{list(map(lambda x: x["e"],all_points2))},time:{t2};{reduce(lambda x, y:x+y, t2)}")
-    #print(f"with value{alternative_path};{alternative},")
+        
     path_distances,path_times,path_points,path_value=getInTime(a1,t1,all_points1,all_time,velocity)
-    print(f"1{path_points}")
-    print(f"2 Idő:{reduce(lambda x, y:x+y,path_times)}/{time},{path_times}")
-    print(f"3 Hossz: {reduce(lambda x, y:x+y,path_distances)},{path_distances}")
-    print(f"4 Pont: {reduce(lambda x, y:x+y,path_value)},{path_value}")
-    print(f"Peti\n\n\n\n")
-    path_distances,path_times,path_points,path_value=getInTime(a2,t2,all_points2,all_time,velocity)
-    print(f"1{path_points}")
-    print(f"2 Idő:{reduce(lambda x, y:x+y,path_times)}/{time},{path_times}")
-    print(f"3 Hossz: {reduce(lambda x, y:x+y,path_distances)},{path_distances}")
-    print(f"4 Pont: {reduce(lambda x, y:x+y,path_value)},{path_value}")
+    if debug:
+        print(f"Debug: path:{euler_tour},cost:{a1};{reduce(lambda x, y:x+y, a1)},{list(map(lambda x: x["e"],all_points1))},time:{t1};{reduce(lambda x, y:x+y, t1)}")
+        print(f"1{path_points}")
+        print(f"2 Idő:{reduce(lambda x, y:x+y,path_times)}/{all_time},{path_times}")
+        print(f"3 Hossz: {reduce(lambda x, y:x+y,path_distances)},{path_distances}")
+        print(f"4 Pont: {reduce(lambda x, y:x+y,path_value)},{path_value}")
+        if Getpeti:
+            peti=getResultPeti()
+            print(f"Peti\n\n\n\n")
+            all_points2=[]
+            for point in peti:
+                point=int(point)
+                all_points2.append({"x":temporary_points[point-1]["x"],
+                                        "y":temporary_points[point-1]["y"],
+                                        "z":temporary_points[point-1]["z"],
+                                        "e":temporary_points[point-1]["e"]})
+            a2=getRealPathValues(all_points2)
+            t2=[]
+            if velocity:
+                for path in a2:
+                    time=path/velocity
+                    t2.append(time)
+            print(f"PetiDebug: path:{peti},cost:{a2};{reduce(lambda x, y:x+y, a2)},{list(map(lambda x: x["e"],all_points2))},time:{t2};{reduce(lambda x, y:x+y, t2)}")
+            path_distances,path_times,path_points,path_value=getInTime(a2,t2,all_points2,all_time,velocity)
+            print(f"1{path_points}")
+            print(f"2 Idő:{reduce(lambda x, y:x+y,path_times)}/{all_time},{path_times}")
+            print(f"3 Hossz: {reduce(lambda x, y:x+y,path_distances)},{path_distances}")
+            print(f"4 Pont: {reduce(lambda x, y:x+y,path_value)},{path_value}")
+    return path_distances,path_times,path_points,path_value
 if __name__ == "__main__":
     velocity=float(input("Sebesség(float)(e/s):"))
     time=float(input("Idő(float)(s):"))

@@ -11,7 +11,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import trimesh
 import pyglet
-max_sidebars_width=300
+max_sidebars_width=400
 info_spacing=80
 class Ui_MainWindow(object):
     def __init__(self) -> None:
@@ -64,7 +64,7 @@ class Ui_MainWindow(object):
         self.elozoLepes.setBaseSize(150,50)
         self.footer.addStretch(1)
         self.footer.addWidget(self.elozoLepes,0)
-        self.mostaniLepes = QtWidgets.QLabel(self.gridLayoutWidget)
+        self.mostaniLepes:QtWidgets.QLabel = QtWidgets.QLabel(self.gridLayoutWidget)
         self.mostaniLepes.setObjectName("mostaniLepes")
         self.mostaniLepes.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.mostaniLepes.setMinimumSize(150,50)
@@ -100,19 +100,16 @@ class Ui_MainWindow(object):
         self.rightsidebar = QtWidgets.QVBoxLayout()
         self.rightsidebarWidget.setLayout(self.rightsidebar)
         self.rightsidebar.setObjectName("rightsidebar")
-        self.scrollArea = QtWidgets.QScrollArea(self.gridLayoutWidget)
+        self.scrollArea:QtWidgets.QScrollArea=QtWidgets.QScrollArea(self)
         self.scrollArea.setWidgetResizable(True)
-        self.scrollArea.setObjectName("scrollArea")
-        self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 275, 146))
-        self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
-        self.gridLayoutWidget_2 = QtWidgets.QWidget(self.scrollAreaWidgetContents)
-        self.gridLayoutWidget_2.setGeometry(QtCore.QRect(20, 10, 160, 80))
-        self.gridLayoutWidget_2.setObjectName("gridLayoutWidget_2")
-        self.gridLayout_4 = QtWidgets.QGridLayout(self.gridLayoutWidget_2)
-        self.gridLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.gridLayout_4.setObjectName("gridLayout_4")
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.scrollArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.scrollArea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scrollItems:QtWidgets.QVBoxLayout=QtWidgets.QVBoxLayout(self.scrollArea)
+        self.scrollBox = QtWidgets.QGroupBox()
+        self.scrollBox.setLayout(self.scrollItems)
+        self.scrollArea.setWidget(self.scrollBox)
+        self.scrollArea.setObjectName("scroll_area")
+        
         self.rightsidebar.addWidget(self.scrollArea)
         self.rightsidebarWidget.setMaximumWidth(max_sidebars_width)
         self.gridLayout.addWidget(self.rightsidebarWidget, 0, 2, 3, 1)
@@ -135,7 +132,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.elozoLepes.setText(_translate("MainWindow", "⏮️"))
-        self.mostaniLepes.setText(_translate("MainWindow", "Label2"))
+        self.mostaniLepes.setText(_translate("MainWindow", "nth.lépés"))
         self.kovetkezoLepes.setText(_translate("MainWindow", "⏯️"))
         self.startSimulacio.setText(_translate("MainWindow", "Start Szimulácio"))
     def ValidateValues(self,lineEdit:QtWidgets.QLineEdit,horizantalSlider:QtWidgets.QSlider,Value:str):
