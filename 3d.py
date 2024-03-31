@@ -3,11 +3,16 @@ import trimesh
 import threading
 import time
 import numpy as np
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QSlider, QScrollArea, QLabel, QListWidget, QOpenGLWidget
-from PyQt5.QtCore import Qt, QRect
+import math
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QSlider, QScrollArea, QLabel, QListWidget, QListView, QOpenGLWidget
+from PyQt5.QtCore import Qt
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+
+from gui import Ui_MainWindow
+
 
 colors = {
     "[36, 140, 204]": [36, 140, 204],
@@ -70,7 +75,7 @@ class QPygletWidget(QOpenGLWidget):
         for frame in range(num_frames):
             if stop_event.is_set():
                 return
-            angle = 3.14 / 100
+            angle = math.pi / 100
             axis = [0, 1, 0]
             center = [0, 0, 0]
             matrix = trimesh.transformations.rotation_matrix(angle, axis, center)
@@ -105,66 +110,34 @@ class QPygletWidget(QOpenGLWidget):
             self.xRot += 5
         self.update()
 
-
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.setWindowTitle("Gyöngykeresés")
-        self.setGeometry(50, 150, 1920, 1080)
-        
-        main_layout = QHBoxLayout()
-        
-        self.sidebar = QWidget()
-        self.sidebar.setFixedWidth(200)
-        sidebar_layout = QVBoxLayout()
-
-        self.scrollArea = QScrollArea()
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollAreaWidgetContents = QWidget()
-        self.listView_2 = QListWidget()
-        self.label_5 = QLabel("Label 5")
-        self.rootlabel = QLabel("Root Label")
-        
-        self.sidebar_layout_setup(sidebar_layout)
-
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.sidebar.setLayout(sidebar_layout)
+        self.setupUi(self)
 
         self.pygletWidget = QPygletWidget(scene=trimesh.load("submarine.glb"))
-        
-        main_layout.addWidget(self.sidebar)
-        main_layout.addWidget(self.pygletWidget)
 
-        container = QWidget()
-        container.setLayout(main_layout)
-        self.setCentralWidget(container)
+        self.startSim.clicked.connect(self.start_simulation)
+        self.loadFileButton.clicked.connect(self.load_file)
+        self.startbutton.clicked.connect(self.start_simulation)
+        self.prevbutton.clicked.connect(self.previous_simulation)
+        self.nextbutton.clicked.connect(self.next_simulation)
 
-    def sidebar_layout_setup(self, layout):
-        self.velocity = QSlider(Qt.Horizontal)
-        self.time = QSlider(Qt.Horizontal)
-        self.label_4 = QLabel("Dimensions")
-        self.x_slider = QSlider(Qt.Horizontal)
-        self.y_slider = QSlider(Qt.Horizontal)
-        self.z_slider = QSlider(Qt.Horizontal)
-        self.listView = QListWidget()
-        self.startSim = QPushButton("Start Simulation")
-        self.label = QLabel("Settings")
-        self.label_2 = QLabel("Velocity")
-        self.loadFileButton = QPushButton("Load File")
-        self.label_3 = QLabel("Time")
-        
-        layout.addWidget(self.label)
-        layout.addWidget(self.loadFileButton)
-        layout.addWidget(self.label_2)
-        layout.addWidget(self.velocity)
-        layout.addWidget(self.label_3)
-        layout.addWidget(self.time)
-        layout.addWidget(self.label_4)
-        layout.addWidget(self.x_slider)
-        layout.addWidget(self.y_slider)
-        layout.addWidget(self.z_slider)
-        layout.addWidget(self.listView)
-        layout.addWidget(self.startSim)
+    def start_simulation(self):
+        # Logic for starting the simulation
+        print("Starting simulation...")
+
+    def load_file(self):
+        # Logic for loading a file
+        print("Loading file...")
+
+    def previous_simulation(self):
+        # Logic for previous simulation
+        print("Previous simulation...")
+
+    def next_simulation(self):
+        # Logic for next simulation
+        print("Next simulation...")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
