@@ -4,8 +4,8 @@ from PyQt5 import QtWidgets, QtCore
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
-from ui_mainwindow import Ui_MainWindow
-import algoritmus
+from kinezet.ui_mainwindow import Ui_MainWindow
+import segedprogramok.algoritmus as algoritmus
 from functools import reduce
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -27,7 +27,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def start_simulation(self):
         # Logic for starting the simulation
         print("Starting simulation...")
-        self.path_distances,self.path_times,self.path_points,self.path_value=algoritmus.main(self.ertekek["ido"],self.ertekek["sebesseg"],True)
+        self.path_distances,self.path_times,self.path_points,self.path_value=algoritmus.main(self.ertekek["ido"],self.ertekek["sebesseg"],True,False)
         self.updateSimulation()
         #Load the first step
         self.loadStep(0)

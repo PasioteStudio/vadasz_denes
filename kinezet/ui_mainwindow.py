@@ -10,7 +10,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import trimesh
-import pyglet
+import kinezet.pyglet as pyglet
 max_sidebars_width=400
 info_spacing=80
 class Ui_MainWindow(object):
@@ -47,7 +47,7 @@ class Ui_MainWindow(object):
                             """)
         self.centralwidget.setLayout(self.gridLayout)
         self.centralLayout=QtWidgets.QGridLayout()
-        self.pygletWidget:pyglet.QPygletWidget = pyglet.QPygletWidget(scene=trimesh.load("submarine.glb"))
+        self.pygletWidget:pyglet.QPygletWidget = pyglet.QPygletWidget(scene=trimesh.load("forrasok/submarine.glb"))
         self.pygletWidget.setMinimumSize(100,100)
         self.centralLayout.addWidget(self.pygletWidget)
         self.gridLayout.addLayout(self.centralLayout,0,1,3,1)

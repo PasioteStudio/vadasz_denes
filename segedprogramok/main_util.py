@@ -2,7 +2,7 @@ import copy
 
 import networkx as nx
 
-from utils.graph import Graph
+from segedprogramok.graph import Graph
 
 
 def create_graph_from_txt_file(txt_file: str):

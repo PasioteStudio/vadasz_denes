@@ -1,7 +1,7 @@
 import os
 import itertools
-import utils.main_util as main_util
-from utils.graph import Graph
+import segedprogramok.main_util as main_util
+from segedprogramok.graph import Graph
 import math
 from functools import reduce
 def getLength(x1,y1,z1,e1,x2,y2,z2,e2):
@@ -38,7 +38,7 @@ def initInput(temporary_points):
             complete_lines.append(f"{id+1},{id+i+2},{path}")
     return complete_lines
 def getResultPeti():
-    import peti_alg
+    import segedprogramok.peti_alg as peti_alg
     elements = peti_alg.run()
     in_order=[]
     for id,element in enumerate(elements):
