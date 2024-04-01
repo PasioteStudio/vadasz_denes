@@ -24,6 +24,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         print(step)
         self.currentStep=step
         self.mostaniLepes.setText(f"{step+1}.lépés")
+        #self.path_points[step] + self.path_points[step+1]
+        self.pygletWidget.run_animation(self.pygletWidget.stop_event,False)
     def start_simulation(self):
         # Logic for starting the simulation
         print("Starting simulation...")

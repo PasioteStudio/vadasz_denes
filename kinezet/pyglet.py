@@ -7,7 +7,7 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QSlider, QScrollArea, QLabel, QListWidget, QListView, QOpenGLWidget
-
+import numpy as np
 colors = {
     "[36, 140, 204]": [36, 140, 204],
     "[0, 0, 0]": [0, 0, 0],
@@ -27,10 +27,8 @@ class QPygletWidget(QOpenGLWidget):
         self.yRot = 0
         self.zRot = 0
         self.setFocusPolicy(Qt.StrongFocus)
-        animation_thread = threading.Thread(target=self.run_animation, args=(0, self.stop_event))
+        animation_thread = threading.Thread(target=self.run_animation, args=(self.stop_event,True))
         animation_thread.start()
-    def StopEvent(self):
-        self.stop_event.set()
     def initializeGL(self):
         glClearColor(0.5, 0.5, 0.5, 1.0)
         glEnable(GL_DEPTH_TEST)
@@ -62,21 +60,34 @@ class QPygletWidget(QOpenGLWidget):
         gluPerspective(45, width / height, 0.1, 50.0)
         glMatrixMode(GL_MODELVIEW)
 
-    def run_animation(self, asd, stop_event: threading.Event):
+    def run_animation(self, stop_event: threading.Event, isIdle=True):
         num_frames = 1000
         angle_increment = 1
+        #TODO a value, fps, in github
+        fps=1/12
         for frame in range(num_frames):
             if stop_event.is_set():
                 return
-            angle = math.pi / 100
             axis = [0, 1, 0]
             center = [0, 0, 0]
-            matrix = trimesh.transformations.rotation_matrix(angle, axis, center)
-            for name, mesh in self.scene.geometry.items():
-                mesh.apply_transform(matrix)
-            self.update()
-            time.sleep(0.05)
+            if isIdle:
+                angle = math.pi / 100
+                matrix = trimesh.transformations.rotation_matrix(angle, axis, center)
+                for name, mesh in self.scene.geometry.items():
+                    mesh:trimesh.Trimesh=mesh
+                    mesh.apply_transform(matrix)
+            else:
+                for name, mesh in self.scene.geometry.items():
+                    mesh:trimesh.Trimesh=mesh
+                    # Define the translation vector
+                    translation_vector = np.array([0.01, 0.01, 0.01])  # Replace x, y, z with your desired coordinates
 
+                    # Move the mesh to the new position
+                    mesh.vertices += translation_vector
+                
+            
+            self.update()
+            time.sleep(fps)
     def render_mesh(self, mesh):
         if isinstance(mesh, trimesh.Trimesh):
             glEnableClientState(GL_VERTEX_ARRAY)
