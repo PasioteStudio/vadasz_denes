@@ -7,6 +7,7 @@ from OpenGL.GLU import *
 from kinezet.ui_mainwindow import Ui_MainWindow
 import segedprogramok.algoritmus as algoritmus
 from functools import reduce
+import threading
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -20,12 +21,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.startSimulacio.clicked.connect(self.start_simulation)
         self.elozoLepes.clicked.connect(self.previous_simulation)
         self.kovetkezoLepes.clicked.connect(self.next_simulation)
+        self.StepStopEvent=threading.Event()
     def loadStep(self,step:int):
         print(step)
         self.currentStep=step
         self.mostaniLepes.setText(f"{step+1}.lépés")
-        #self.path_points[step] + self.path_points[step+1]
-        self.pygletWidget.run_animation(self.pygletWidget.stop_event,False)
+
+        self.StepStopEvent.set()
+        self.StepStopEvent = threading.Event()
+        animation_thread = threading.Thread(target=self.pygletWidget.run_animation2, args=(self.StepStopEvent,self.path_points[step],self.path_points[step+1],True, self.path_times[step],1/12,5))
+        animation_thread.start()
     def start_simulation(self):
         # Logic for starting the simulation
         print("Starting simulation...")
@@ -37,6 +42,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Logic for loading a file
         print("Loading file...")
     def updateSimulation(self):
+        self.pygletWidget.stop_event.set()
         #Kitörölni
         print(self.scrollItems.count())
         for i in range(self.scrollItems.count()):  
@@ -88,6 +94,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.osszegzes = QtWidgets.QLabel(f"Összes t:{reduce(lambda x, y:x+y, self.path_times)}/{self.ertekek["ido"]}\nÖsszes s:{reduce(lambda x, y:x+y, self.path_distances)}",self.scrollArea)
         self.osszegzes.setObjectName("osszegzes")
         self.scrollItems.addWidget(self.osszegzes)
+    
     def previous_simulation(self):
         # Logic for previous simulation
         print("Previous simulation...")
@@ -105,6 +112,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             next=0
         self.loadStep(next)
     def closeEvent(self,event):
+        self.StepStopEvent.set()
         self.pygletWidget.stop_event.set()
 if __name__ == '__main__':
     app = QApplication(sys.argv)

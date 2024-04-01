@@ -26,8 +26,14 @@ class QPygletWidget(QOpenGLWidget):
         self.xRot = 0
         self.yRot = 0
         self.zRot = 0
+        self.position={
+            "x":0,
+            "y":0,
+            "z":0
+        }
+
         self.setFocusPolicy(Qt.StrongFocus)
-        animation_thread = threading.Thread(target=self.run_animation, args=(self.stop_event,True))
+        animation_thread = threading.Thread(target=self.run_animation, args=(self.stop_event,False))
         animation_thread.start()
     def initializeGL(self):
         glClearColor(0.5, 0.5, 0.5, 1.0)
@@ -60,34 +66,129 @@ class QPygletWidget(QOpenGLWidget):
         gluPerspective(45, width / height, 0.1, 50.0)
         glMatrixMode(GL_MODELVIEW)
 
-    def run_animation(self, stop_event: threading.Event, isIdle=True):
-        num_frames = 1000
+    def run_animation(self, stop_event: threading.Event, step:list[dict]=False,how_long_sec:float=-1,fps:float=1/12):
         angle_increment = 1
-        #TODO a value, fps, in github
-        fps=1/12
-        for frame in range(num_frames):
+        per=10
+        current_time=0
+        if step:
+            deltaX=(step[1]["x"]-step[0]["x"])/how_long_sec*fps/per
+            deltaY=(step[1]["y"]-step[0]["y"])/how_long_sec*fps/per
+            deltaZ=(step[1]["z"]-step[0]["z"])/how_long_sec*fps/per
+            translation_vector = np.array([step[0]["x"] / per, step[0]["y"] / per, step[0]["z"] / per]) - np.array([self.position["x"], self.position["y"], self.position["z"]])
+            print("asda",self.position)
+            self.position["x"]=step[0]["x"]/per
+            self.position["y"]=step[0]["y"]/per
+            self.position["z"]=step[0]["z"]/per
+            translation_matrix = trimesh.transformations.translation_matrix(translation_vector)
+            for name, mesh in self.scene.geometry.items():
+                    mesh:trimesh.Trimesh=mesh
+                    
+                    # Move the mesh to the new position
+                    mesh.apply_transform(translation_matrix)
+            self.update()
+        while current_time*fps<how_long_sec or how_long_sec == -1:
             if stop_event.is_set():
                 return
             axis = [0, 1, 0]
             center = [0, 0, 0]
-            if isIdle:
+            if not step:
                 angle = math.pi / 100
                 matrix = trimesh.transformations.rotation_matrix(angle, axis, center)
                 for name, mesh in self.scene.geometry.items():
                     mesh:trimesh.Trimesh=mesh
                     mesh.apply_transform(matrix)
             else:
+                # Define the translation vector
+                print(self.position)
+                translation_vector = translation_vector = np.array([deltaX, deltaY, deltaZ])
+                print(self.position)
+                translation_matrix = trimesh.transformations.translation_matrix(translation_vector)
                 for name, mesh in self.scene.geometry.items():
                     mesh:trimesh.Trimesh=mesh
-                    # Define the translation vector
-                    translation_vector = np.array([0.01, 0.01, 0.01])  # Replace x, y, z with your desired coordinates
-
+                    
                     # Move the mesh to the new position
-                    mesh.vertices += translation_vector
+                    mesh.apply_transform(translation_matrix)
                 
             
             self.update()
+            current_time+=1
             time.sleep(fps)
+        if step:
+            translation_vector = np.array([step[0]["x"] / per, step[0]["y"] / per, step[0]["z"] / per]) - np.array([self.position["x"], self.position["y"], self.position["z"]])
+            print("asda",self.position)
+            translation_matrix = trimesh.transformations.translation_matrix(translation_vector)
+            for name, mesh in self.scene.geometry.items():
+                    mesh:trimesh.Trimesh=mesh
+                    
+                    # Move the mesh to the new position
+                    mesh.apply_transform(translation_matrix)
+            self.update()
+            self.run_animation(stop_event=stop_event, step=step,how_long_sec=how_long_sec,fps=fps)
+    
+    
+    
+    def run_animation2(self, stop_event: threading.Event, starting_point: dict, ending_point: dict, step=False, how_long_sec: float = -1, fps: float = 1 / 12,scale:float=10):
+        # Calculate deltas for translation
+        # Apply scaling to starting and ending points
+        scaled_starting_point = {
+            "x": starting_point["x"] / scale,
+            "y": starting_point["y"] / scale,
+            "z": starting_point["z"] / scale
+        }
+        scaled_ending_point = {
+            "x": ending_point["x"] / scale,
+            "y": ending_point["y"] / scale,
+            "z": ending_point["z"] / scale
+        }
+    
+        self.reset_to_starting_point(starting_point,scale,ending_point)
+        deltaX = (scaled_ending_point["x"] - scaled_starting_point["x"]) / how_long_sec * fps
+        deltaY = (scaled_ending_point["y"] - scaled_starting_point["y"]) / how_long_sec * fps
+        deltaZ = (scaled_ending_point["z"] - scaled_starting_point["z"]) / how_long_sec * fps
+        current_time=0
+        # Main animation loop
+        while current_time * fps < how_long_sec or how_long_sec == -1:
+            if stop_event.is_set():
+                return
+
+            # Calculate translation vector
+            translation_vector = np.array([deltaX, deltaY, deltaZ])
+
+            # Update position
+            self.position["x"] += deltaX
+            self.position["y"] += deltaY
+            self.position["z"] += deltaZ
+
+            # Apply translation to meshes
+            for name, mesh in self.scene.geometry.items():
+                mesh:trimesh.Trimesh
+                mesh.apply_translation(translation_vector)
+            self.update()
+            current_time += 1
+            time.sleep(fps)
+
+        # If step is True, reset position to starting point
+        if step:
+            self.run_animation2(stop_event,starting_point,ending_point,step,how_long_sec,fps,scale)
+
+    def reset_to_starting_point(self, starting_point: dict,scale,ending_point:dict):
+        translation_vector = np.array([
+            starting_point["x"]/scale - self.position["x"],
+            starting_point["y"]/scale - self.position["y"],
+            starting_point["z"]/scale - self.position["z"]
+        ])
+        for name, mesh in self.scene.geometry.items():
+            mesh.apply_translation(translation_vector)
+        # Update position
+        self.position = {
+            "x":starting_point["x"]/scale,
+            "y":starting_point["y"]/scale,
+            "z":starting_point["z"]/scale,
+                         }
+
+        self.update()
+    
+    
     def render_mesh(self, mesh):
         if isinstance(mesh, trimesh.Trimesh):
             glEnableClientState(GL_VERTEX_ARRAY)
