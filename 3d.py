@@ -29,12 +29,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.StepStopEvent.set()
         self.StepStopEvent = threading.Event()
-        animation_thread = threading.Thread(target=self.pygletWidget.run_animation2, args=(self.StepStopEvent,self.path_points[step],self.path_points[step+1],True, self.path_times[step],1/12,5))
+        animation_thread = threading.Thread(target=self.pygletWidget.run_animation, args=(self.StepStopEvent,self.path_points[step],self.path_points[step+1],True, self.path_times[step],1/12,5))
         animation_thread.start()
     def start_simulation(self):
         # Logic for starting the simulation
         print("Starting simulation...")
-        self.path_distances,self.path_times,self.path_points,self.path_value=algoritmus.main(self.ertekek["ido"],self.ertekek["sebesseg"],True,False)
+        self.path_distances,self.path_times,self.path_points,self.path_value=algoritmus.main(self.ertekek["ido"],self.ertekek["sebesseg"],self.ertekek["x"],self.ertekek["y"],self.ertekek["z"] ,True,False)
         self.updateSimulation()
         #Load the first step
         self.loadStep(0)

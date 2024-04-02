@@ -9,14 +9,14 @@ from OpenGL.GLU import *
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QSlider, QScrollArea, QLabel, QListWidget, QListView, QOpenGLWidget
 import numpy as np
 colors = {
-    "[36, 140, 204]": [36, 140, 204],
+    "[36, 140, 204]": [0, 140, 204], #fülke
     "[0, 0, 0]": [0, 0, 0],
     "[255, 0, 0]": [255, 0, 0],
     "[0, 12, 38]": [0, 12, 38],
     "[1, 0, 33]": [1, 0, 33],
-    "[204, 172, 0]": [204, 172, 0],
+    "[204, 172, 0]": [204, 0, 0],
     "[13, 13, 13]": [13, 13, 13],
-    "[255, 4, 0]": [255, 4, 0],
+    "[255, 4, 0]": [100, 4, 0],
 }
 class QPygletWidget(QOpenGLWidget):
     def __init__(self, scene: trimesh.Scene, parent=None):
@@ -31,9 +31,13 @@ class QPygletWidget(QOpenGLWidget):
             "y":0,
             "z":0
         }
-
+        self.rotation={
+            "x":"",
+            "y":"",
+        }
+        self.had=False
         self.setFocusPolicy(Qt.StrongFocus)
-        animation_thread = threading.Thread(target=self.run_animation, args=(self.stop_event,False))
+        animation_thread = threading.Thread(target=self.run_animation, args=(self.stop_event,False,False,False,-1,1/12,1))
         animation_thread.start()
     def initializeGL(self):
         glClearColor(0.5, 0.5, 0.5, 1.0)
@@ -53,10 +57,6 @@ class QPygletWidget(QOpenGLWidget):
         glRotatef(self.zRot, 0.0, 0.0, 1.0)
         if self.scene:
             for name, mesh in self.scene.geometry.items():
-                material = mesh.visual.material
-                color = list(material.main_color[:3])
-                color = colors[str(color)]
-                glColor3fv(color)
                 self.render_mesh(mesh)
 
     def resizeGL(self, width, height):
@@ -65,28 +65,28 @@ class QPygletWidget(QOpenGLWidget):
         glLoadIdentity()
         gluPerspective(45, width / height, 0.1, 50.0)
         glMatrixMode(GL_MODELVIEW)
-
-    def run_animation(self, stop_event: threading.Event, step:list[dict]=False,how_long_sec:float=-1,fps:float=1/12):
-        angle_increment = 1
-        per=10
-        current_time=0
+        
+    def run_animation(self, stop_event: threading.Event, starting_point: dict, ending_point: dict, step=False, how_long_sec: float = -1, fps: float = 1 / 12,scale:float=10):
+        # Calculate deltas for translation
+        # Apply scaling to starting and ending points
         if step:
-            deltaX=(step[1]["x"]-step[0]["x"])/how_long_sec*fps/per
-            deltaY=(step[1]["y"]-step[0]["y"])/how_long_sec*fps/per
-            deltaZ=(step[1]["z"]-step[0]["z"])/how_long_sec*fps/per
-            translation_vector = np.array([step[0]["x"] / per, step[0]["y"] / per, step[0]["z"] / per]) - np.array([self.position["x"], self.position["y"], self.position["z"]])
-            print("asda",self.position)
-            self.position["x"]=step[0]["x"]/per
-            self.position["y"]=step[0]["y"]/per
-            self.position["z"]=step[0]["z"]/per
-            translation_matrix = trimesh.transformations.translation_matrix(translation_vector)
-            for name, mesh in self.scene.geometry.items():
-                    mesh:trimesh.Trimesh=mesh
-                    
-                    # Move the mesh to the new position
-                    mesh.apply_transform(translation_matrix)
-            self.update()
-        while current_time*fps<how_long_sec or how_long_sec == -1:
+            scaled_starting_point = {
+                "x": starting_point["x"] / scale,
+                "y": starting_point["y"] / scale,
+                "z": starting_point["z"] / scale
+            }
+            scaled_ending_point = {
+                "x": ending_point["x"] / scale,
+                "y": ending_point["y"] / scale,
+                "z": ending_point["z"] / scale
+            }
+            self.reset_to_starting_point2(starting_point,scale,ending_point)
+            deltaX = (scaled_ending_point["x"] - scaled_starting_point["x"]) / how_long_sec * fps
+            deltaY = (scaled_ending_point["y"] - scaled_starting_point["y"]) / how_long_sec * fps
+            deltaZ = (scaled_ending_point["z"] - scaled_starting_point["z"]) / how_long_sec * fps
+        current_time=0
+        # Main animation loop
+        while current_time * fps < how_long_sec or how_long_sec == -1:
             if stop_event.is_set():
                 return
             axis = [0, 1, 0]
@@ -98,97 +98,87 @@ class QPygletWidget(QOpenGLWidget):
                     mesh:trimesh.Trimesh=mesh
                     mesh.apply_transform(matrix)
             else:
-                # Define the translation vector
-                print(self.position)
-                translation_vector = translation_vector = np.array([deltaX, deltaY, deltaZ])
-                print(self.position)
-                translation_matrix = trimesh.transformations.translation_matrix(translation_vector)
+                # Calculate translation vector
+                translation_vector = np.array([deltaX, deltaY, deltaZ])
+
+                # Update position
+                self.position["x"] += deltaX
+                self.position["y"] += deltaY
+                self.position["z"] += deltaZ
+
+                # Apply translation to meshes
                 for name, mesh in self.scene.geometry.items():
-                    mesh:trimesh.Trimesh=mesh
-                    
-                    # Move the mesh to the new position
-                    mesh.apply_transform(translation_matrix)
-                
-            
-            self.update()
-            current_time+=1
-            time.sleep(fps)
-        if step:
-            translation_vector = np.array([step[0]["x"] / per, step[0]["y"] / per, step[0]["z"] / per]) - np.array([self.position["x"], self.position["y"], self.position["z"]])
-            print("asda",self.position)
-            translation_matrix = trimesh.transformations.translation_matrix(translation_vector)
-            for name, mesh in self.scene.geometry.items():
-                    mesh:trimesh.Trimesh=mesh
-                    
-                    # Move the mesh to the new position
-                    mesh.apply_transform(translation_matrix)
-            self.update()
-            self.run_animation(stop_event=stop_event, step=step,how_long_sec=how_long_sec,fps=fps)
-    
-    
-    
-    def run_animation2(self, stop_event: threading.Event, starting_point: dict, ending_point: dict, step=False, how_long_sec: float = -1, fps: float = 1 / 12,scale:float=10):
-        # Calculate deltas for translation
-        # Apply scaling to starting and ending points
-        scaled_starting_point = {
-            "x": starting_point["x"] / scale,
-            "y": starting_point["y"] / scale,
-            "z": starting_point["z"] / scale
-        }
-        scaled_ending_point = {
-            "x": ending_point["x"] / scale,
-            "y": ending_point["y"] / scale,
-            "z": ending_point["z"] / scale
-        }
-    
-        self.reset_to_starting_point(starting_point,scale,ending_point)
-        deltaX = (scaled_ending_point["x"] - scaled_starting_point["x"]) / how_long_sec * fps
-        deltaY = (scaled_ending_point["y"] - scaled_starting_point["y"]) / how_long_sec * fps
-        deltaZ = (scaled_ending_point["z"] - scaled_starting_point["z"]) / how_long_sec * fps
-        current_time=0
-        # Main animation loop
-        while current_time * fps < how_long_sec or how_long_sec == -1:
-            if stop_event.is_set():
-                return
-
-            # Calculate translation vector
-            translation_vector = np.array([deltaX, deltaY, deltaZ])
-
-            # Update position
-            self.position["x"] += deltaX
-            self.position["y"] += deltaY
-            self.position["z"] += deltaZ
-
-            # Apply translation to meshes
-            for name, mesh in self.scene.geometry.items():
-                mesh:trimesh.Trimesh
-                mesh.apply_translation(translation_vector)
+                    mesh:trimesh.Trimesh
+                    mesh.apply_translation(translation_vector)
             self.update()
             current_time += 1
             time.sleep(fps)
 
         # If step is True, reset position to starting point
         if step:
-            self.run_animation2(stop_event,starting_point,ending_point,step,how_long_sec,fps,scale)
+            self.run_animation(stop_event,starting_point,ending_point,step,how_long_sec,fps,scale)
 
-    def reset_to_starting_point(self, starting_point: dict,scale,ending_point:dict):
+
+    def reset_to_starting_point2(self, starting_point: dict, scale, ending_point: dict):
+        # Reset the rotation based on the current rotation "tracker"
+        if self.rotation["x"]!="":
+            print(self.rotation)
+            x_angle = np.pi*2- self.rotation["x"]
+            y_angle = np.pi*2-self.rotation["y"]
+            x_direction = [1, 0, 0] #x
+            y_direction = [0, 1, 0] #y
+            center = [0, 0, 0]
+
+            x_rot_matrix = trimesh.transformations.rotation_matrix(x_angle, x_direction, center)
+            y_rot_matrix = trimesh.transformations.rotation_matrix(y_angle, y_direction, center)
+            for name, mesh in self.scene.geometry.items():
+                mesh: trimesh.Trimesh
+                mesh.apply_transform(np.dot(y_rot_matrix, x_rot_matrix))
+            self.rotation={
+                "x":0,
+                "y":0
+            }
+        #Set the rotation
+        if not self.had:
+            x_angle = math.pi / 4
+            y_angle = math.pi / 4
+            x_direction = [1, 0, 0] #x
+            y_direction = [0, 1, 0] #y
+            center = [0, 0, 0]
+
+            x_rot_matrix = trimesh.transformations.rotation_matrix(x_angle, x_direction, center)
+            y_rot_matrix = trimesh.transformations.rotation_matrix(y_angle, y_direction, center)
+
+        # Calculate the translation vector
         translation_vector = np.array([
-            starting_point["x"]/scale - self.position["x"],
-            starting_point["y"]/scale - self.position["y"],
-            starting_point["z"]/scale - self.position["z"]
+            starting_point["x"] / scale - self.position["x"],
+            starting_point["y"] / scale - self.position["y"],
+            starting_point["z"] / scale - self.position["z"]
         ])
+
         for name, mesh in self.scene.geometry.items():
+            mesh: trimesh.Trimesh
             mesh.apply_translation(translation_vector)
+            if not self.had:
+                mesh.apply_transform(x_rot_matrix)
+                mesh.apply_transform(y_rot_matrix)
+
         # Update position
         self.position = {
-            "x":starting_point["x"]/scale,
-            "y":starting_point["y"]/scale,
-            "z":starting_point["z"]/scale,
-                         }
-
+            "x": starting_point["x"] / scale,
+            "y": starting_point["y"] / scale,
+            "z": starting_point["z"] / scale,
+        }
+        if not self.had:
+            print("sad")
+            self.rotation={
+                "x":x_angle,
+                "y":y_angle
+            }
+            self.had=True
+        else:
+            pass
         self.update()
-    
-    
     def render_mesh(self, mesh):
         if isinstance(mesh, trimesh.Trimesh):
             glEnableClientState(GL_VERTEX_ARRAY)
@@ -196,7 +186,6 @@ class QPygletWidget(QOpenGLWidget):
             glEnableClientState(GL_NORMAL_ARRAY)
             glNormalPointer(GL_FLOAT, 0, mesh.vertex_normals.flatten())
             material = mesh.visual.material
-            default_color = [0.0, 0.0, 0.0]
             color = list(material.main_color[:3])
             color = colors[str(color)]
             glColor3fv(color)

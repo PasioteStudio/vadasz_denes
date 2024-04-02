@@ -8,6 +8,21 @@ def getLength(x1,y1,z1,e1,x2,y2,z2,e2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)/e1/e2
 def getLengthProper(x1,y1,z1,x2,y2,z2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)
+def maximize(filename,max):
+    f = open(filename,"r+",encoding="utf8")
+    f.readline()
+    lines = f.readlines()
+    f.close()
+    max.append(None)
+    x = [int(i.strip().split(';')[0]) for i in lines]
+    y = [int(i.strip().split(';')[1]) for i in lines]
+    z = [int(i.strip().split(';')[2]) for i in lines]
+    v = [int(i.strip().split(';')[3]) for i in lines]
+    done = []
+    for index,i in enumerate([x,y,z]):
+        done.append([max[index] if n > max[index] else n for n in i])
+    res = [[done[0][i],done[1][i],done[2][i],v[i],] for i in range(len(lines))]
+    return res
 def getRealPathValues(path:list[dict]):
     legth=[]
     for id,point in enumerate(path):
@@ -16,19 +31,15 @@ def getRealPathValues(path:list[dict]):
         else:
             pass
     return legth
-def initInput(temporary_points):
-    f=open("gyongyok.txt","r+",encoding="utf8")
-    lines=f.readlines()
-    f.close()
+def initInput(temporary_points,x,y,z):
     temporary_points.append({"x":0,"y":0,"z":0,"e":1})#Kezdőpont
-    for id,line in enumerate(lines):
+    for id,line in enumerate(maximize("gyongyok.txt",[x,y,z])):
         if id == 0:
             continue
-        parts=line.strip().split(";")
-        temporary_points.append({"x":int(parts[0]),
-                                 "y":int(parts[1]),
-                                 "z":int(parts[2]),
-                                 "e":int(parts[3])})
+        temporary_points.append({"x":int(line[0]),
+                                 "y":int(line[1]),
+                                 "z":int(line[2]),
+                                 "e":int(line[3])})
     complete_lines=[]
     for id,point in enumerate(temporary_points):
         for i in range(len(temporary_points)-id-1):
@@ -136,10 +147,10 @@ def getInTime(path_distances:list[float],path_times:list[float],path_points:list
         path_value.append(point["e"])
     
     return merged_path_distances,merged_path_times,merged_path_points,path_value
-def main(all_time,velocity,debug=False,Getpeti=False):
+def main(all_time,velocity,x,y,z,debug=False,Getpeti=False):
     #x;y;z;e to vertext to vertex format
     temporary_points=[]
-    complete_lines=initInput(temporary_points)
+    complete_lines=initInput(temporary_points,x,y,z)
     debug_folder = r"output/"
     source_node = "1"
 
@@ -268,4 +279,4 @@ def main(all_time,velocity,debug=False,Getpeti=False):
 if __name__ == "__main__":
     velocity=float(input("Sebesség(float)(e/s):"))
     time=float(input("Idő(float)(s):"))
-    main(time,velocity)
+    main(time,velocity,100,100,100)
