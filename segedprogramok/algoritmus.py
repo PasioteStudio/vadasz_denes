@@ -137,8 +137,8 @@ def getInTime(path_distances:list[float],path_times:list[float],path_points:list
     temp_path_distances_back.reverse()
     
     merged_path_points=temp_path_points_front+temp_path_points_back
-    merged_path_times=temp_path_times_front+temp_path_times_back+[connection/velocity]
-    merged_path_distances=temp_path_distances_front+temp_path_distances_back+[connection]
+    merged_path_times=temp_path_times_front+[connection/velocity]+temp_path_times_back
+    merged_path_distances=temp_path_distances_front+[connection]+temp_path_distances_back
     
     for id,point in enumerate(merged_path_points):
         if id==0 or id==len(merged_path_points)-1:
