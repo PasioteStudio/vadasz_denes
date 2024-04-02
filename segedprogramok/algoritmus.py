@@ -147,6 +147,10 @@ def getInTime(path_distances:list[float],path_times:list[float],path_points:list
         path_value.append(point["e"])
     
     return merged_path_distances,merged_path_times,merged_path_points,path_value
+def getGyongy(x,y,z):
+    temporary_points=[]
+    complete_lines=initInput(temporary_points,x,y,z)
+    return complete_lines
 def main(all_time,velocity,x,y,z,debug=False,Getpeti=False):
     #x;y;z;e to vertext to vertex format
     temporary_points=[]

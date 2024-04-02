@@ -21,6 +21,7 @@ colors = {
 class QPygletWidget(QOpenGLWidget):
     def __init__(self, scene: trimesh.Scene, parent=None):
         super(QPygletWidget, self).__init__(parent)
+        self.buvarhajoMeshes=[]
         self.stop_event = threading.Event()
         self.scene = scene
         self.xRot = 0
@@ -32,10 +33,19 @@ class QPygletWidget(QOpenGLWidget):
             "z":0
         }
         self.rotation={
-            "x":"",
-            "y":"",
+            "x":0,
+            "y":0,
         }
-        self.had=False
+        
+        if self.scene:
+            for name, mesh in self.scene.geometry.items():
+                self.buvarhajoMeshes.append(mesh)
+                y_angle=-math.atan(1)*2
+                y_direction = [0, 1, 0] #y
+                center = [0, 0, 0]
+                y_rot_matrix = trimesh.transformations.rotation_matrix(y_angle, y_direction, center)
+                mesh.apply_transform(y_rot_matrix)
+                mesh.apply_scale(1/2)
         self.setFocusPolicy(Qt.StrongFocus)
         animation_thread = threading.Thread(target=self.run_animation, args=(self.stop_event,False,False,False,-1,1/12,1))
         animation_thread.start()
@@ -57,7 +67,8 @@ class QPygletWidget(QOpenGLWidget):
         glRotatef(self.zRot, 0.0, 0.0, 1.0)
         if self.scene:
             for name, mesh in self.scene.geometry.items():
-                self.render_mesh(mesh)
+                if mesh in self.buvarhajoMeshes:
+                    self.render_mesh(mesh)
 
     def resizeGL(self, width, height):
         glViewport(0, 0, width, height)
@@ -94,9 +105,11 @@ class QPygletWidget(QOpenGLWidget):
             if not step:
                 angle = math.pi / 100
                 matrix = trimesh.transformations.rotation_matrix(angle, axis, center)
+                self.rotation["y"]+=angle
                 for name, mesh in self.scene.geometry.items():
-                    mesh:trimesh.Trimesh=mesh
-                    mesh.apply_transform(matrix)
+                    if mesh in self.buvarhajoMeshes:
+                        mesh:trimesh.Trimesh=mesh
+                        mesh.apply_transform(matrix)
             else:
                 # Calculate translation vector
                 translation_vector = np.array([deltaX, deltaY, deltaZ])
@@ -108,8 +121,9 @@ class QPygletWidget(QOpenGLWidget):
 
                 # Apply translation to meshes
                 for name, mesh in self.scene.geometry.items():
-                    mesh:trimesh.Trimesh
-                    mesh.apply_translation(translation_vector)
+                    if mesh in self.buvarhajoMeshes:
+                        mesh:trimesh.Trimesh
+                        mesh.apply_translation(translation_vector)
             self.update()
             current_time += 1
             time.sleep(fps)
@@ -120,11 +134,22 @@ class QPygletWidget(QOpenGLWidget):
 
 
     def reset_to_starting_point2(self, starting_point: dict, scale, ending_point: dict):
-        # Reset the rotation based on the current rotation "tracker"
-        if self.rotation["x"]!="":
+        
+        # Calculate the translation vector
+        translation_vector = np.array([
+            starting_point["x"] / scale - self.position["x"],
+            starting_point["y"] / scale - self.position["y"],
+            starting_point["z"] / scale - self.position["z"]
+        ])
+        for name, mesh in self.scene.geometry.items():
+            if mesh in self.buvarhajoMeshes:
+                mesh: trimesh.Trimesh
+                mesh.apply_translation(translation_vector)
+        if False:
+            # Reset the rotation based on the current rotation "tracker"
             print(self.rotation)
-            x_angle = np.pi*2- self.rotation["x"]
-            y_angle = np.pi*2-self.rotation["y"]
+            x_angle = (math.pi*2- self.rotation["x"])
+            y_angle = math.pi*2-self.rotation["y"]
             x_direction = [1, 0, 0] #x
             y_direction = [0, 1, 0] #y
             center = [0, 0, 0]
@@ -132,16 +157,25 @@ class QPygletWidget(QOpenGLWidget):
             x_rot_matrix = trimesh.transformations.rotation_matrix(x_angle, x_direction, center)
             y_rot_matrix = trimesh.transformations.rotation_matrix(y_angle, y_direction, center)
             for name, mesh in self.scene.geometry.items():
-                mesh: trimesh.Trimesh
-                mesh.apply_transform(np.dot(y_rot_matrix, x_rot_matrix))
+                if mesh in self.buvarhajoMeshes:
+                    mesh: trimesh.Trimesh
+                    #mesh.apply_transform(y_rot_matrix)
+                    #mesh.apply_transform(x_rot_matrix)
             self.rotation={
                 "x":0,
                 "y":0
             }
-        #Set the rotation
-        if not self.had:
-            x_angle = math.pi / 4
-            y_angle = math.pi / 4
+            neg1=1
+            neg2=1
+            if (ending_point["x"]-starting_point["x"]) < 0 and (ending_point["y"]-starting_point["y"]) < 0:
+                neg1= -1
+            if (ending_point["z"]-starting_point["z"]) < 0 and (ending_point["y"]-starting_point["y"])<0:
+                neg2=-1
+            #Set the rotation
+            x_angle = math.atan((ending_point["x"]-starting_point["x"])/(ending_point["y"]-starting_point["y"])) #TOA
+            y_angle = -math.atan((ending_point["z"]-starting_point["z"])/(ending_point["y"]-starting_point["y"]))#TOA
+            
+            
             x_direction = [1, 0, 0] #x
             y_direction = [0, 1, 0] #y
             center = [0, 0, 0]
@@ -149,36 +183,27 @@ class QPygletWidget(QOpenGLWidget):
             x_rot_matrix = trimesh.transformations.rotation_matrix(x_angle, x_direction, center)
             y_rot_matrix = trimesh.transformations.rotation_matrix(y_angle, y_direction, center)
 
-        # Calculate the translation vector
-        translation_vector = np.array([
-            starting_point["x"] / scale - self.position["x"],
-            starting_point["y"] / scale - self.position["y"],
-            starting_point["z"] / scale - self.position["z"]
-        ])
+            
 
-        for name, mesh in self.scene.geometry.items():
-            mesh: trimesh.Trimesh
-            mesh.apply_translation(translation_vector)
-            if not self.had:
-                mesh.apply_transform(x_rot_matrix)
-                mesh.apply_transform(y_rot_matrix)
-
+            for name, mesh in self.scene.geometry.items():
+                if mesh in self.buvarhajoMeshes:
+                    mesh: trimesh.Trimesh
+                    #mesh.apply_transform(y_rot_matrix)
+                    #mesh.apply_transform(x_rot_matrix)
+            self.rotation={
+                "x":x_angle,
+                "y":y_angle
+            }
         # Update position
         self.position = {
             "x": starting_point["x"] / scale,
             "y": starting_point["y"] / scale,
             "z": starting_point["z"] / scale,
         }
-        if not self.had:
-            print("sad")
-            self.rotation={
-                "x":x_angle,
-                "y":y_angle
-            }
-            self.had=True
-        else:
-            pass
+        
         self.update()
+    def addItem(self,mesh:trimesh.Trimesh):
+        self.scene.add_geometry(mesh)
     def render_mesh(self, mesh):
         if isinstance(mesh, trimesh.Trimesh):
             glEnableClientState(GL_VERTEX_ARRAY)
@@ -187,6 +212,7 @@ class QPygletWidget(QOpenGLWidget):
             glNormalPointer(GL_FLOAT, 0, mesh.vertex_normals.flatten())
             material = mesh.visual.material
             color = list(material.main_color[:3])
+            
             color = colors[str(color)]
             glColor3fv(color)
             glDrawElements(GL_TRIANGLES, len(mesh.faces) * 3, GL_UNSIGNED_INT, mesh.faces.flatten())
