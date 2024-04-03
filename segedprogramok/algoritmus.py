@@ -183,7 +183,7 @@ def main(gyongyokFajlNeve,all_time,velocity,x,y,z,debug=False,Getpeti=False):
     debug_folder = r"output/"
     source_node = "1"
 
-    if not os.path.exists(debug_folder):
+    if not os.path.exists(debug_folder) and debug:
         os.makedirs(debug_folder)
     else:
         pass
