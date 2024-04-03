@@ -40,7 +40,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         animation_thread.start()
     def start_simulation(self):
         # Logic for starting the simulation
-        self.path_distances,self.path_times,self.path_points,self.path_value = algoritmus.main(self.gyongyokFile,self.ertekek["ido"],self.ertekek["sebesseg"],self.ertekek["x"],self.ertekek["y"],self.ertekek["z"] ,False,False)
+        self.path_distances,self.path_times,self.path_points,self.path_value = algoritmus.main(self.gyongyokFile,self.ertekek["ido"],self.ertekek["sebesseg"],self.ertekek["x"],self.ertekek["y"],self.ertekek["z"] ,False)
         self.updateSimulation()
         #Load the first step
         self.loadStep(0)

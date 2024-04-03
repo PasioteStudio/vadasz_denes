@@ -6,14 +6,14 @@ import math
 from functools import reduce
 
 
-def getLength(x1,y1,z1,e1,x2,y2,z2,e2):
+def getHosszErtekkel(x1,y1,z1,e1,x2,y2,z2,e2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)/e1/e2
 
-def getLengthProper(x1,y1,z1,x2,y2,z2):
+def getHossz(x1,y1,z1,x2,y2,z2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)
 
 
-def maximize(filename,max):
+def maximalizal(filename,max):
     f = open(filename,"r+",encoding="utf8")
     f.readline()
     lines = f.readlines()
@@ -23,163 +23,139 @@ def maximize(filename,max):
     y = [int(i.strip().split(';')[1]) for i in lines]
     z = [int(i.strip().split(';')[2]) for i in lines]
     v = [int(i.strip().split(';')[3]) for i in lines]
-    done = []
+    eredmeny  = []
     for index,i in enumerate([x,y,z]):
-        done.append([max[index] if n > max[index] else n for n in i])
-    res = [[done[0][i],done[1][i],done[2][i],v[i],] for i in range(len(lines))]
+        eredmeny .append([max[index] if n > max[index] else n for n in i])
+    res = [[eredmeny [0][i],eredmeny [1][i],eredmeny [2][i],v[i],] for i in range(len(lines))]
     return res
 
 
-def getRealPathValues(path:list[dict]):
-    legth=[]
-    for id,point in enumerate(path):
-        if id != len(path)-1:
-            legth.append(getLengthProper(point["x"],point["y"],point["z"],path[id+1]["x"],path[id+1]["y"],path[id+1]["z"]))
+def getUtHossza(ut:list[dict]):
+    hossz=[]
+    for id,pont in enumerate(ut):
+        if id != len(ut)-1:
+            hossz.append(getHossz(pont["x"],pont["y"],pont["z"],ut[id+1]["x"],ut[id+1]["y"],ut[id+1]["z"]))
         else:
             pass
-    return legth
+    return hossz
 
 
-def initInput(gyongyokFajlNeve,temporary_points,x,y,z):
-    temporary_points.append({"x":0,"y":0,"z":0,"e":1})#Kezdőpont
-    for id,line in enumerate(maximize(gyongyokFajlNeve,[x,y,z])):
+def initBeolvasas(gyongyokFajlNeve,ideiglenes_pontok,x,y,z):
+    ideiglenes_pontok.append({"x":0,"y":0,"z":0,"e":1})#Kezdőpont
+    for id,vonal in enumerate(maximalizal(gyongyokFajlNeve,[x,y,z])):
         if id == 0:
             continue
-        temporary_points.append({"x":int(line[0]),
-                                 "y":int(line[1]),
-                                 "z":int(line[2]),
-                                 "e":int(line[3])})
-    complete_lines=[]
-    for id,point in enumerate(temporary_points):
-        for i in range(len(temporary_points)-id-1):
-            path=getLength(point["x"],point["y"],point["z"],point["e"],temporary_points[id+i+1]["x"],temporary_points[id+i+1]["y"],temporary_points[id+i+1]["z"],temporary_points[id+i+1]["e"])
-            path=float(path)
-            complete_lines.append(f"{id+1},{id+i+2},{path}")
-    return complete_lines
-
-
-def getResultPeti(gyongyokFajl):
-    import segedprogramok.peti_alg as peti_alg
-    elements = peti_alg.run(gyongyokFajl)
-    in_order=[]
-    for id,element in enumerate(elements):
-        in_order.append(element[0])
-        if id == len(elements)-1:
-            in_order.append(element[1])
-    peti=list(map(lambda x: str(x+1),in_order))
-    #Nem 1től 1ig megy, ki kell javítani a kört
-    kijavitott=[]
-    egyes=peti.index('1')
-    for id,szam in enumerate(peti):
-        if id==len(peti)-1:
-            kijavitott.append(peti[egyes])
-        elif egyes+id >= len(peti):
-            kijavitott.append(peti[id-len(peti)+egyes+1])
-        else:
-            kijavitott.append(peti[egyes+id])
-    return kijavitott
-
-
-def getInTime(path_distances:list[float],path_times:list[float],path_points:list[dict],time:float,velocity:float):
-    path_value=[]
+        ideiglenes_pontok.append({"x":int(vonal[0]),
+                                 "y":int(vonal[1]),
+                                 "z":int(vonal[2]),
+                                 "e":int(vonal[3])})
+    befejezettVonalak=[]
+    for id,point in enumerate(ideiglenes_pontok):
+        for i in range(len(ideiglenes_pontok)-id-1):
+            ut=getHosszErtekkel(point["x"],point["y"],point["z"],point["e"],ideiglenes_pontok[id+i+1]["x"],ideiglenes_pontok[id+i+1]["y"],ideiglenes_pontok[id+i+1]["z"],ideiglenes_pontok[id+i+1]["e"])
+            ut=float(ut)
+            befejezettVonalak.append(f"{id+1},{id+i+2},{ut}")
+    return befejezettVonalak
+def minimalisUtIdonBelul(utTav:list[float],utIdok:list[float],utPontok:list[dict],ido:float,sebesseg:float):
+    utErtek=[]
     #meg kell győzödni, hogy nem tudjuk körbejárni az adott idő alatt
-    if not reduce(lambda x, y:x+y, path_times) > time:
-        for id,point in enumerate(path_points):
-            if id==0 or id==len(path_points)-1:
-                path_value.append(0)
+    if not reduce(lambda x, y:x+y, utIdok) > ido:
+        for id,pont in enumerate(utPontok):
+            if id==0 or id==len(utPontok)-1:
+                utErtek.append(0)
                 continue
-            path_value.append(point["e"])
-        return path_distances,path_times,path_points,path_value
+            utErtek.append(pont["e"])
+        return utTav,utIdok,utPontok,utErtek
     #Első szegmens, előről
-    temp_path_points_front=[path_points[0]]
-    temp_path_times_front=[path_times[0]]
-    temp_path_distances_front=[path_distances[0]]
-    currentTime=path_times[0]
-    while currentTime <= time/2:
-        will_be=path_times[len(temp_path_points_front)]
-        if will_be+currentTime <= time/2:
-            currentTime+=will_be
-            temp_path_points_front.append(path_points[len(temp_path_points_front)])
-            temp_path_times_front.append(will_be)
-            temp_path_distances_front.append(path_distances[len(temp_path_points_front)-1])
+    elsoPontok=[utPontok[0]]
+    elsoIdok=[utIdok[0]]
+    elsoTavolsagok=[utTav[0]]
+    pillanatnyiIdo=utIdok[0]
+    while pillanatnyiIdo <= ido/2:
+        lesz=utIdok[len(elsoPontok)]
+        if lesz+pillanatnyiIdo <= ido/2:
+            pillanatnyiIdo+=lesz
+            elsoPontok.append(utPontok[len(elsoPontok)])
+            elsoIdok.append(lesz)
+            elsoTavolsagok.append(utTav[len(elsoPontok)-1])
         else:
             break
         
     #Második szegmens, hátulról
-    path_times.reverse()
-    path_points.reverse()
-    path_distances.reverse()
-    currentTime=path_times[0]
-    temp_path_points_back=[path_points[0]]
-    temp_path_times_back=[path_times[0]]
-    temp_path_distances_back=[path_distances[0]]
-    while currentTime <= time/2:
-        will_be=path_times[len(temp_path_points_back)]
-        if will_be+currentTime <= time/2:
-            currentTime+=will_be
-            temp_path_points_back.append(path_points[len(temp_path_points_back)])
-            temp_path_times_back.append(will_be)
-            temp_path_distances_back.append(path_distances[len(temp_path_points_back)-1])
+    utIdok.reverse()
+    utPontok.reverse()
+    utTav.reverse()
+    pillanatnyiIdo=utIdok[0]
+    hatsoPontok=[utPontok[0]]
+    hatsoIdok=[utIdok[0]]
+    hatsoTavolsagok=[utTav[0]]
+    while pillanatnyiIdo <= ido/2:
+        lesz=utIdok[len(hatsoPontok)]
+        if lesz+pillanatnyiIdo <= ido/2:
+            pillanatnyiIdo+=lesz
+            hatsoPontok.append(utPontok[len(hatsoPontok)])
+            hatsoIdok.append(lesz)
+            hatsoTavolsagok.append(utTav[len(hatsoPontok)-1])
         else:
             break
         
     #Összekötjük őket (a hátulról menő arrayt, az elülről menő arrayel)
     #Megnézzük, hogy jó-e így
-    while reduce(lambda x, y:x+y, temp_path_times_back+temp_path_times_front+[getLengthProper(temp_path_points_front[-1]["x"],
-                                                                                              temp_path_points_front[-1]["y"],
-                                                                                              temp_path_points_front[-1]["z"],
-                                                                                              temp_path_points_back[-1]["x"],
-                                                                                              temp_path_points_back[-1]["y"],
-                                                                                              temp_path_points_back[-1]["z"])/velocity]) > time:
-        if temp_path_points_front[-1]["e"]/temp_path_times_front[-1] > temp_path_points_back[-1]["e"]/temp_path_times_back[-1]:
-            temp_path_distances_back.pop()
-            temp_path_times_back.pop()
-            temp_path_points_back.pop()
+    while reduce(lambda x, y:x+y, hatsoIdok+elsoIdok+[getHossz(elsoPontok[-1]["x"],
+                                                                                              elsoPontok[-1]["y"],
+                                                                                              elsoPontok[-1]["z"],
+                                                                                              hatsoPontok[-1]["x"],
+                                                                                              hatsoPontok[-1]["y"],
+                                                                                              hatsoPontok[-1]["z"])/sebesseg]) > ido:
+        if elsoPontok[-1]["e"]/elsoIdok[-1] > hatsoPontok[-1]["e"]/hatsoIdok[-1]:
+            hatsoTavolsagok.pop()
+            hatsoIdok.pop()
+            hatsoPontok.pop()
         else:
-            temp_path_distances_front.pop()
-            temp_path_times_front.pop()
-            temp_path_points_front.pop()
+            elsoTavolsagok.pop()
+            elsoIdok.pop()
+            elsoPontok.pop()
             
     #összekötés
-    connection=getLengthProper(temp_path_points_front[-1]["x"],
-                                temp_path_points_front[-1]["y"],
-                                temp_path_points_front[-1]["z"],
-                                temp_path_points_back[-1]["x"],
-                                temp_path_points_back[-1]["y"],
-                                temp_path_points_back[-1]["z"])
-    temp_path_points_back.reverse()
-    temp_path_times_back.reverse()
-    temp_path_distances_back.reverse()
+    kapcsolat=getHossz(elsoPontok[-1]["x"],
+                                elsoPontok[-1]["y"],
+                                elsoPontok[-1]["z"],
+                                hatsoPontok[-1]["x"],
+                                hatsoPontok[-1]["y"],
+                                hatsoPontok[-1]["z"])
+    hatsoPontok.reverse()
+    hatsoIdok.reverse()
+    hatsoTavolsagok.reverse()
     
-    merged_path_points=temp_path_points_front+temp_path_points_back
-    merged_path_times=temp_path_times_front+[connection/velocity]+temp_path_times_back
-    merged_path_distances=temp_path_distances_front+[connection]+temp_path_distances_back
+    osszPontok=elsoPontok+hatsoPontok
+    osszIdok=elsoIdok+[kapcsolat/sebesseg]+hatsoIdok
+    osszTavolsagok=elsoTavolsagok+[kapcsolat]+hatsoTavolsagok
     
-    for id,point in enumerate(merged_path_points):
-        if id==0 or id==len(merged_path_points)-1:
-            path_value.append(0)
+    for id,point in enumerate(osszPontok):
+        if id==0 or id==len(osszPontok)-1:
+            utErtek.append(0)
             continue
-        path_value.append(point["e"])
+        utErtek.append(point["e"])
     
-    return merged_path_distances,merged_path_times,merged_path_points,path_value
+    return osszTavolsagok,osszIdok,osszPontok,utErtek
 
 
 def getGyongy(gyongyokFajl, x,y,z):
-    temporary_points=[]
-    for id,line in enumerate(maximize(gyongyokFajl,[x,y,z])):
+    ideiglenesPontok=[]
+    for id,line in enumerate(maximalizal(gyongyokFajl,[x,y,z])):
         if id == 0:
             continue
-        temporary_points.append({"x":int(line[0]),
+        ideiglenesPontok.append({"x":int(line[0]),
                                  "y":int(line[1]),
                                  "z":int(line[2]),
                                  "e":int(line[3])})
-    return temporary_points
+    return ideiglenesPontok
 
 
-def main(gyongyokFajlNeve,all_time,velocity,x,y,z,debug=False,Getpeti=False):
+def main(gyongyokFajlNeve,all_time,sebesseg,x,y,z,debug=False):
     #x;y;z;e to vertext to vertex format
-    temporary_points=[]
-    complete_lines=initInput(gyongyokFajlNeve,temporary_points,x,y,z)
+    ideiglenesPontok=[]
+    vegsoVonalak=initBeolvasas(gyongyokFajlNeve,ideiglenesPontok,x,y,z)
     debug_folder = r"output/"
     source_node = "1"
 
@@ -189,7 +165,7 @@ def main(gyongyokFajlNeve,all_time,velocity,x,y,z,debug=False,Getpeti=False):
         pass
 
     # create graph from input txt file
-    initial_g = main_util.create_graph_from_list(complete_lines)
+    initial_g = main_util.create_graph_from_list(vegsoVonalak)
     if debug:
         print("Initial Graph:")
         main_util.print_edges_with_weight(initial_g)
@@ -259,52 +235,30 @@ def main(gyongyokFajlNeve,all_time,velocity,x,y,z,debug=False,Getpeti=False):
     
     
     
-    all_points1=[]
-    for point in euler_tour:
-        point=int(point)
-        all_points1.append({"x":temporary_points[point-1]["x"],
-                                "y":temporary_points[point-1]["y"],
-                                "z":temporary_points[point-1]["z"],
-                                "e":temporary_points[point-1]["e"]})
+    osszes_pont=[]
+    for pont in euler_tour:
+        pont=int(pont)
+        osszes_pont.append({"x":ideiglenesPontok[pont-1]["x"],
+                                "y":ideiglenesPontok[pont-1]["y"],
+                                "z":ideiglenesPontok[pont-1]["z"],
+                                "e":ideiglenesPontok[pont-1]["e"]})
     
-    a1=getRealPathValues(all_points1)
-    t1=[]
-    if velocity:
-        for path in a1:
-            time=path/velocity
-            t1.append(time)
+    utak=getUtHossza(osszes_pont)
+    idok=[]
+    if sebesseg:
+        for ut in utak:
+            time=ut/sebesseg
+            idok.append(time)
         
-    path_distances,path_times,path_points,path_value=getInTime(a1,t1,all_points1,all_time,velocity)
+    ut_hossz,ut_ido,ut_pontok,ut_ertekek=minimalisUtIdonBelul(utak,idok,osszes_pont,all_time,sebesseg)
     if debug:
-        print(f"Debug: path:{euler_tour},cost:{a1};{reduce(lambda x, y:x+y, a1)},{list(map(lambda x: x['e'],all_points1))},time:{t1};{reduce(lambda x, y:x+y, t1)}")
-        print(f"1{path_points}")
-        print(f"2 Idő:{reduce(lambda x, y:x+y,path_times)}/{all_time},{path_times}")
-        print(f"3 Hossz: {reduce(lambda x, y:x+y,path_distances)},{path_distances}")
-        print(f"4 Pont: {reduce(lambda x, y:x+y,path_value)},{path_value}")
-        if Getpeti:
-            peti=getResultPeti(gyongyokFajlNeve)
-            print(f"Peti\n\n\n\n")
-            all_points2=[]
-            for point in peti:
-                point=int(point)
-                all_points2.append({"x":temporary_points[point-1]["x"],
-                                        "y":temporary_points[point-1]["y"],
-                                        "z":temporary_points[point-1]["z"],
-                                        "e":temporary_points[point-1]["e"]})
-            a2=getRealPathValues(all_points2)
-            t2=[]
-            if velocity:
-                for path in a2:
-                    time=path/velocity
-                    t2.append(time)
-            print(f"PetiDebug: path:{peti},cost:{a2};{reduce(lambda x, y:x+y, a2)},{list(map(lambda x: x['e'],all_points2))},time:{t2};{reduce(lambda x, y:x+y, t2)}")
-            path_distances,path_times,path_points,path_value=getInTime(a2,t2,all_points2,all_time,velocity)
-            print(f"1{path_points}")
-            print(f"2 Idő:{reduce(lambda x, y:x+y,path_times)}/{all_time},{path_times}")
-            print(f"3 Hossz: {reduce(lambda x, y:x+y,path_distances)},{path_distances}")
-            print(f"4 Pont: {reduce(lambda x, y:x+y,path_value)},{path_value}")
-    return path_distances,path_times,path_points,path_value
+        print(f"Debug: path:{euler_tour},cost:{utak};{reduce(lambda x, y:x+y, utak)},{list(map(lambda x: x['e'],osszes_pont))},time:{idok};{reduce(lambda x, y:x+y, idok)}")
+        print(f"1{ut_pontok}")
+        print(f"2 Idő:{reduce(lambda x, y:x+y,ut_ido)}/{all_time},{ut_ido}")
+        print(f"3 Hossz: {reduce(lambda x, y:x+y,ut_hossz)},{ut_hossz}")
+        print(f"4 Pont: {reduce(lambda x, y:x+y,ut_ertekek)},{ut_ertekek}")
+    return ut_hossz,ut_ido,ut_pontok,ut_ertekek
 if __name__ == "__main__":
-    velocity=float(input("Sebesség(float)(e/s):"))
-    time=float(input("Idő(float)(s):"))
-    main(time,velocity,100,100,100)
+    sebesseg=float(input("Sebesség(float)(e/s):"))
+    ido=float(input("Idő(float)(s):"))
+    main(ido,sebesseg,100,100,100)
