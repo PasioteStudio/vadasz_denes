@@ -58,9 +58,9 @@ def initInput(gyongyokFajlNeve,temporary_points,x,y,z):
     return complete_lines
 
 
-def getResultPeti():
+def getResultPeti(gyongyokFajl):
     import segedprogramok.peti_alg as peti_alg
-    elements = peti_alg.run()
+    elements = peti_alg.run(gyongyokFajl)
     in_order=[]
     for id,element in enumerate(elements):
         in_order.append(element[0])
@@ -164,9 +164,9 @@ def getInTime(path_distances:list[float],path_times:list[float],path_points:list
     return merged_path_distances,merged_path_times,merged_path_points,path_value
 
 
-def getGyongy(x,y,z):
+def getGyongy(gyongyokFajl, x,y,z):
     temporary_points=[]
-    for id,line in enumerate(maximize("gyongyok.txt",[x,y,z])):
+    for id,line in enumerate(maximize(gyongyokFajl,[x,y,z])):
         if id == 0:
             continue
         temporary_points.append({"x":int(line[0]),
@@ -282,7 +282,7 @@ def main(gyongyokFajlNeve,all_time,velocity,x,y,z,debug=False,Getpeti=False):
         print(f"3 Hossz: {reduce(lambda x, y:x+y,path_distances)},{path_distances}")
         print(f"4 Pont: {reduce(lambda x, y:x+y,path_value)},{path_value}")
         if Getpeti:
-            peti=getResultPeti()
+            peti=getResultPeti(gyongyokFajlNeve)
             print(f"Peti\n\n\n\n")
             all_points2=[]
             for point in peti:

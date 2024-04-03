@@ -48,6 +48,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         fname,type = QtWidgets.QFileDialog.getOpenFileName(self, 'Gyöngyök megnyitása', 
          'c:\\',"Szöveg fájlok (*.txt)")
         if fname:
+            print(fname)
             self.gyongyokFile=fname
     def updateSimulation(self):
         self.pygletWidget.stop_event.set()
@@ -61,7 +62,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.scrollItems.addWidget(self.osszes_lepes)
         
         
-        self.pygletWidget.addGyongyok(algoritmus.getGyongy(self.ertekek["x"],self.ertekek["y"],self.ertekek["z"]),self.scale)
+        self.pygletWidget.addGyongyok(algoritmus.getGyongy(self.gyongyokFile,self.ertekek["x"],self.ertekek["y"],self.ertekek["z"]),self.scale)
         self.pygletWidget.AkvariumRajzolasa(self.ertekek["x"],self.ertekek["y"],self.ertekek["z"],self.scale)
         self.pygletWidget.setPathes(self.path_points,self.scale)
         for id,point in enumerate(self.path_points):
