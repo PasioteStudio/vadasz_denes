@@ -27,11 +27,11 @@ class QPygletWidget(QOpenGLWidget):
         self.akvarium=0
         self.utak=[]
         self.scene = scene
+        self.fps=fps
+        # Globális változók a kamera pozíciójának és forgatásának
         self.xRot = 0
         self.yRot = 0
         self.zRot = 0
-        self.fps=fps
-        # Global variables for camera position and movement speed
         self.camera_position = [0,0,-2.5]
         self.position={
             "x":0,
@@ -47,7 +47,7 @@ class QPygletWidget(QOpenGLWidget):
             for name, mesh in self.scene.geometry.items():
                 self.buvarhajoMeshes.append(mesh)
                 y_angle=-math.atan(1)*2
-                y_direction = [0, 1, 0] #y
+                y_direction = [0, 1, 0]
                 center = [0, 0, 0]
                 y_rot_matrix = trimesh.transformations.rotation_matrix(y_angle, y_direction, center)
                 mesh.apply_transform(y_rot_matrix)
@@ -69,7 +69,6 @@ class QPygletWidget(QOpenGLWidget):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
-        # Set up camera view matrix
         glTranslatef(self.camera_position[0],self.camera_position[1],self.camera_position[2])
         
         glRotatef(self.xRot, 1.0, 0.0, 0.0)
@@ -92,8 +91,8 @@ class QPygletWidget(QOpenGLWidget):
         glMatrixMode(GL_MODELVIEW)
         
     def run_animation(self, stop_event: threading.Event, starting_point: dict, ending_point: dict, step=False, how_long_sec: float = -1, fps: float = 1 / 12,scale:float=10):
-        # Calculate deltas for translation
-        # Apply scaling to starting and ending points
+        # Kiszámolni a kezdő és vég között a távolságot
+        # És egy kicsinyítést teszünk rá, hogy ne legyen hatalmas
         if step:
             scaled_starting_point = {
                 "x": starting_point["x"] / scale,
@@ -110,7 +109,7 @@ class QPygletWidget(QOpenGLWidget):
             deltaY = (scaled_ending_point["y"] - scaled_starting_point["y"]) / how_long_sec * fps
             deltaZ = (scaled_ending_point["z"] - scaled_starting_point["z"]) / how_long_sec * fps
         current_time=0
-        # Main animation loop
+        # Fő animáció:
         while current_time * fps < how_long_sec or how_long_sec == -1:
             if stop_event.is_set():
                 return
@@ -125,15 +124,14 @@ class QPygletWidget(QOpenGLWidget):
                         mesh:trimesh.Trimesh=mesh
                         mesh.apply_transform(matrix)
             else:
-                # Calculate translation vector
                 translation_vector = np.array([deltaX, deltaY, deltaZ])
 
-                # Update position
+                # A jelenlegi pozíció frissítése
                 self.position["x"] += deltaX
                 self.position["y"] += deltaY
                 self.position["z"] += deltaZ
 
-                # Apply translation to meshes
+                # Hozzáadjuk az eltolást a testhez
                 for name, mesh in self.scene.geometry.items():
                     if mesh in self.buvarhajoMeshes:
                         mesh:trimesh.Trimesh
@@ -142,14 +140,12 @@ class QPygletWidget(QOpenGLWidget):
             current_time += 1
             time.sleep(fps)
 
-        # If step is True, reset position to starting point
         if step:
             self.run_animation(stop_event,starting_point,ending_point,step,how_long_sec,self.fps,scale)
 
 
     def reset_to_starting_point2(self, starting_point: dict, scale, ending_point: dict):
         
-        # Calculate the translation vector
         translation_vector = np.array([
             starting_point["x"] / scale - self.position["x"],
             starting_point["y"] / scale - self.position["y"],
@@ -159,55 +155,7 @@ class QPygletWidget(QOpenGLWidget):
             if mesh in self.buvarhajoMeshes:
                 mesh: trimesh.Trimesh
                 mesh.apply_translation(translation_vector)
-        if False:
-            # Reset the rotation based on the current rotation "tracker"
-            x_angle = (math.pi*2- self.rotation["x"])
-            y_angle = math.pi*2-self.rotation["y"]
-            x_direction = [1, 0, 0] #x
-            y_direction = [0, 1, 0] #y
-            center = [0, 0, 0]
-
-            x_rot_matrix = trimesh.transformations.rotation_matrix(x_angle, x_direction, center)
-            y_rot_matrix = trimesh.transformations.rotation_matrix(y_angle, y_direction, center)
-            for name, mesh in self.scene.geometry.items():
-                if mesh in self.buvarhajoMeshes:
-                    mesh: trimesh.Trimesh
-                    #mesh.apply_transform(y_rot_matrix)
-                    #mesh.apply_transform(x_rot_matrix)
-            self.rotation={
-                "x":0,
-                "y":0
-            }
-            neg1=1
-            neg2=1
-            if (ending_point["x"]-starting_point["x"]) < 0 and (ending_point["y"]-starting_point["y"]) < 0:
-                neg1= -1
-            if (ending_point["z"]-starting_point["z"]) < 0 and (ending_point["y"]-starting_point["y"])<0:
-                neg2=-1
-            #Set the rotation
-            x_angle = math.atan((ending_point["x"]-starting_point["x"])/(ending_point["y"]-starting_point["y"])) #TOA
-            y_angle = -math.atan((ending_point["z"]-starting_point["z"])/(ending_point["y"]-starting_point["y"]))#TOA
-            
-            
-            x_direction = [1, 0, 0] #x
-            y_direction = [0, 1, 0] #y
-            center = [0, 0, 0]
-
-            x_rot_matrix = trimesh.transformations.rotation_matrix(x_angle, x_direction, center)
-            y_rot_matrix = trimesh.transformations.rotation_matrix(y_angle, y_direction, center)
-
-            
-
-            for name, mesh in self.scene.geometry.items():
-                if mesh in self.buvarhajoMeshes:
-                    mesh: trimesh.Trimesh
-                    #mesh.apply_transform(y_rot_matrix)
-                    #mesh.apply_transform(x_rot_matrix)
-            self.rotation={
-                "x":x_angle,
-                "y":y_angle
-            }
-        # Update position
+        # Pozíció frissítése
         self.position = {
             "x": starting_point["x"] / scale,
             "y": starting_point["y"] / scale,
@@ -263,13 +211,12 @@ class QPygletWidget(QOpenGLWidget):
                 glColor3fv(color)
             if mesh == self.akvarium:             
                 glColor4f(0, 0, 0.5, 0.1)
-                # Render the mesh
+                # Megjelenítjük a testet
                 glBegin(GL_QUADS)
                 for face in mesh.faces:
                     for vertex in face:
                         glVertex3fv(mesh.vertices[vertex])
                 glEnd()
-                #mesh.visual.face_colors = [0, 0, 0, 255]
                 mesh.visual.vertex_colors = [255, 255, 255, 255]
             glDrawElements(GL_TRIANGLES, len(mesh.faces) * 3, GL_UNSIGNED_INT, mesh.faces.flatten())
             glDisableClientState(GL_VERTEX_ARRAY)

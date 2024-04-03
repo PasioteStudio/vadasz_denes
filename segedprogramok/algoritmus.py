@@ -153,7 +153,7 @@ def getGyongy(gyongyokFajl, x,y,z):
 
 
 def main(gyongyokFajlNeve,all_time,sebesseg,x,y,z,debug=False):
-    #x;y;z;e to vertext to vertex format
+    #x;y;z;e pontoktól pontokig (milyen távol vannak egymástól)
     ideiglenesPontok=[]
     vegsoVonalak=initBeolvasas(gyongyokFajlNeve,ideiglenesPontok,x,y,z)
     debug_folder = r"output/"

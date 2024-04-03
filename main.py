@@ -24,7 +24,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.kicsinyites=10
         self.ut = os.path.dirname(__file__)
         self.setupUi(self)
-        #self.loadFileButton.clicked.connect(self.load_file)
+
         self.StepStopEvent=threading.Event()
         self.startSimulacio.clicked.connect(self.start_simulation)
         self.gyongyokKivalasztasa.clicked.connect(self.load_file)
@@ -39,13 +39,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         animation_thread = threading.Thread(target=self.pygletWidget.run_animation, args=(self.StepStopEvent,self.ut_pontok[lepes],self.ut_pontok[lepes+1],True, self.ut_idok[lepes],1/self.fps,self.kicsinyites))
         animation_thread.start()
     def start_simulation(self):
-        # Logic for starting the simulation
         self.ut_tavolsagok,self.ut_idok,self.ut_pontok,self.ut_ertekek = algoritmus.main(self.gyongyokFile,self.ertekek["ido"],self.ertekek["sebesseg"],self.ertekek["x"],self.ertekek["y"],self.ertekek["z"] ,False)
         self.updateSimulation()
-        #Load the first step
+        #Az első lépés betöltése
         self.loadStep(0)
     def load_file(self):
-        # Logic for loading a file
         fname,type = QtWidgets.QFileDialog.getOpenFileName(self, 'Gyöngyök megnyitása', 
          'c:\\',"Szöveg fájlok (*.txt)")
         if fname:
@@ -53,7 +51,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.gyongyokFile=fname
     def updateSimulation(self):
         self.pygletWidget.stop_event.set()
-        #Kitörölni
+        #Kitörölni a meglévő szimulációt
         for i in range(self.scrollItems.count()):
             self.scrollItems.itemAt(i).widget().deleteLater()
             self.pygletWidget.reset_to_starting_point2({"x":0,"y":0,"z":0},self.kicsinyites,{"x":0,"y":0,"z":0})
@@ -104,7 +102,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.osszegzes.setObjectName("osszegzes")
         self.scrollItems.addWidget(self.osszegzes)
     def previous_simulation(self):
-        # Logic for previous simulation
         if self.jelenlegiLepes != -1:
             if self.jelenlegiLepes ==0 :
                 prev=len(self.ut_pontok)-2
@@ -112,7 +109,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 prev=self.jelenlegiLepes-1
             self.loadStep(prev)
     def next_simulation(self):
-        # Logic for next simulation
         if self.jelenlegiLepes != -1:
             if self.jelenlegiLepes < len(self.ut_pontok)-2:
                 next=self.jelenlegiLepes + 1
