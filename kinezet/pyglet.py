@@ -23,6 +23,7 @@ class QPygletWidget(QOpenGLWidget):
         super(QPygletWidget, self).__init__(parent)
         self.buvarhajoMeshes=[]
         self.stop_event = threading.Event()
+        self.items=[]
         self.scene = scene
         self.xRot = 0
         self.yRot = 0
@@ -49,8 +50,9 @@ class QPygletWidget(QOpenGLWidget):
         self.setFocusPolicy(Qt.StrongFocus)
         animation_thread = threading.Thread(target=self.run_animation, args=(self.stop_event,False,False,False,-1,1/12,1))
         animation_thread.start()
+        
     def initializeGL(self):
-        glClearColor(0.5, 0.5, 0.5, 1.0)
+        glClearColor(float(str(0.5)), 0.5, 0.5, 1.0)
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
@@ -67,9 +69,9 @@ class QPygletWidget(QOpenGLWidget):
         glRotatef(self.zRot, 0.0, 0.0, 1.0)
         if self.scene:
             for name, mesh in self.scene.geometry.items():
-                if mesh in self.buvarhajoMeshes:
-                    self.render_mesh(mesh)
-
+                self.render_mesh(mesh)
+        for mesh in self.items:
+            self.render_mesh(mesh)
     def resizeGL(self, width, height):
         glViewport(0, 0, width, height)
         glMatrixMode(GL_PROJECTION)
@@ -202,19 +204,21 @@ class QPygletWidget(QOpenGLWidget):
         }
         
         self.update()
-    def addItem(self,mesh:trimesh.Trimesh):
-        self.scene.add_geometry(mesh)
+    def addGyongyok(self,mesh:trimesh.Trimesh):
+        gyongy = trimesh.creation.capsule(0,0.1)
+        self.items.append(gyongy)
     def render_mesh(self, mesh):
         if isinstance(mesh, trimesh.Trimesh):
             glEnableClientState(GL_VERTEX_ARRAY)
             glVertexPointer(3, GL_FLOAT, 0, mesh.vertices.flatten())
             glEnableClientState(GL_NORMAL_ARRAY)
             glNormalPointer(GL_FLOAT, 0, mesh.vertex_normals.flatten())
-            material = mesh.visual.material
-            color = list(material.main_color[:3])
-            
-            color = colors[str(color)]
-            glColor3fv(color)
+            if mesh in self.buvarhajoMeshes:
+                material = mesh.visual.material
+                color = list(material.main_color[:3])
+                
+                color = colors[str(color)]
+                glColor3fv(color)
             glDrawElements(GL_TRIANGLES, len(mesh.faces) * 3, GL_UNSIGNED_INT, mesh.faces.flatten())
             glDisableClientState(GL_VERTEX_ARRAY)
             glDisableClientState(GL_NORMAL_ARRAY)
