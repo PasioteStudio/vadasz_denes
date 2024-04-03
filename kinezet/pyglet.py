@@ -62,6 +62,8 @@ class QPygletWidget(QOpenGLWidget):
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
         glEnable(GL_COLOR_MATERIAL)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glLightfv(GL_LIGHT0, GL_POSITION, [-0.5, -0.5, -1.0, 0])
         glLightfv(GL_LIGHT0, GL_AMBIENT, [1, 1, 1, 1])
         glLightfv(GL_LIGHT0, GL_DIFFUSE, [1, 1, 1, 1])
@@ -210,7 +212,7 @@ class QPygletWidget(QOpenGLWidget):
                 color = colors[str(color)]
                 glColor3fv(color)
             if mesh == self.akvarium:             
-                glColor4f(0, 0, 0.5, 0.1)
+                glColor4f(0, 0, 0.5, 0.5)
                 # Megjelenítjük a testet
                 glBegin(GL_QUADS)
                 for face in mesh.faces:
