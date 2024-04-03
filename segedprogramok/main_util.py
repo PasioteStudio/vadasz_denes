@@ -24,7 +24,6 @@ def create_graph_from_txt_file(txt_file: str):
     raise Exception("Wrong input file provided")
 
 def create_graph_from_list(lines: list[str]):
-    print(lines)
     nodes = []
     for line in lines:
         if "#" not in line:

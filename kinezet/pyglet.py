@@ -19,15 +19,20 @@ colors = {
     "[255, 4, 0]": [100, 4, 0],
 }
 class QPygletWidget(QOpenGLWidget):
-    def __init__(self, scene: trimesh.Scene, parent=None):
+    def __init__(self, scene: trimesh.Scene, parent=None,fps=1/12):
         super(QPygletWidget, self).__init__(parent)
         self.buvarhajoMeshes=[]
         self.stop_event = threading.Event()
-        self.items=[]
+        self.gyongyok=[]
+        self.akvarium=0
+        self.pathes=[]
         self.scene = scene
         self.xRot = 0
         self.yRot = 0
         self.zRot = 0
+        self.fps=fps
+        # Global variables for camera position and movement speed
+        self.camera_position = [0,0,-2.5]
         self.position={
             "x":0,
             "y":0,
@@ -48,7 +53,7 @@ class QPygletWidget(QOpenGLWidget):
                 mesh.apply_transform(y_rot_matrix)
                 mesh.apply_scale(1/2)
         self.setFocusPolicy(Qt.StrongFocus)
-        animation_thread = threading.Thread(target=self.run_animation, args=(self.stop_event,False,False,False,-1,1/12,1))
+        animation_thread = threading.Thread(target=self.run_animation, args=(self.stop_event,False,False,False,-1,self.fps,1))
         animation_thread.start()
         
     def initializeGL(self):
@@ -57,21 +62,28 @@ class QPygletWidget(QOpenGLWidget):
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
         glEnable(GL_COLOR_MATERIAL)
-        glLightfv(GL_LIGHT0, GL_POSITION, [0.5, 0.5, 1.0, 0.0])
-
+        glLightfv(GL_LIGHT0, GL_POSITION, [-0.5, -0.5, -1.0, 0])
+        glLightfv(GL_LIGHT0, GL_AMBIENT, [1, 1, 1, 1])
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, [1, 1, 1, 1])
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
-        glTranslatef(0.0, 0.0, -5.0)
+        # Set up camera view matrix
+        glTranslatef(self.camera_position[0],self.camera_position[1],self.camera_position[2])
+        
         glRotatef(self.xRot, 1.0, 0.0, 0.0)
         glRotatef(self.yRot, 0.0, 1.0, 0.0)
         glRotatef(self.zRot, 0.0, 0.0, 1.0)
         if self.scene:
             for name, mesh in self.scene.geometry.items():
                 self.render_mesh(mesh)
-        for mesh in self.items:
+        for mesh in self.gyongyok:
             self.render_mesh(mesh)
+        for path in self.pathes:
+            self.render_path(path)
+        if self.akvarium != 0:
+            self.render_mesh(self.akvarium)
     def resizeGL(self, width, height):
         glViewport(0, 0, width, height)
         glMatrixMode(GL_PROJECTION)
@@ -132,7 +144,7 @@ class QPygletWidget(QOpenGLWidget):
 
         # If step is True, reset position to starting point
         if step:
-            self.run_animation(stop_event,starting_point,ending_point,step,how_long_sec,fps,scale)
+            self.run_animation(stop_event,starting_point,ending_point,step,how_long_sec,self.fps,scale)
 
 
     def reset_to_starting_point2(self, starting_point: dict, scale, ending_point: dict):
@@ -149,7 +161,6 @@ class QPygletWidget(QOpenGLWidget):
                 mesh.apply_translation(translation_vector)
         if False:
             # Reset the rotation based on the current rotation "tracker"
-            print(self.rotation)
             x_angle = (math.pi*2- self.rotation["x"])
             y_angle = math.pi*2-self.rotation["y"]
             x_direction = [1, 0, 0] #x
@@ -204,9 +215,40 @@ class QPygletWidget(QOpenGLWidget):
         }
         
         self.update()
-    def addGyongyok(self,mesh:trimesh.Trimesh):
-        gyongy = trimesh.creation.capsule(0,0.1)
-        self.items.append(gyongy)
+    def addGyongyok(self,gyongyok:list[dict],scale):
+        for gyongy in gyongyok:
+            gyongyObject = trimesh.creation.capsule(0,gyongy["e"]/scale/10)
+            translation_vector = np.array([
+                gyongy["x"] / scale,
+                gyongy["y"] / scale,
+                gyongy["z"] / scale
+            ])
+            gyongyObject.apply_translation(translation_vector)
+            self.gyongyok.append(gyongyObject)
+    def setPathes(self,path_points:list[dict],scale:float):
+        for id in range(len(path_points)-1):
+            start_point = [path_points[id]["x"]/scale, path_points[id]["y"]/scale,path_points[id]["z"]/scale]
+            end_point=[path_points[id+1]["x"]/scale, path_points[id+1]["y"]/scale,path_points[id+1]["z"]/scale]
+            self.pathes.append([start_point, end_point])
+    def AkvariumRajzolasa(self,x,y,z,scale):
+        self.akvarium  = trimesh.creation.box(extents=[x/scale, y/scale, z/scale])
+        translation_vector = np.array([
+                z/scale/2,
+                y/scale/2,
+                x/scale/2
+        ])
+        self.akvarium.apply_translation(translation_vector)
+    def resetSimulation(self):
+        self.pathes=[]
+        self.gyongyok=[]
+        self.akvarium=0
+    def render_path(self,path):
+        glPointSize(5)
+        glBegin(GL_LINES)
+        glColor3d(1, 0, 0)
+        glVertex4f(path[0][0], path[0][1], path[0][2],1)
+        glVertex4f(path[1][0], path[1][1], path[1][2],1)
+        glEnd()
     def render_mesh(self, mesh):
         if isinstance(mesh, trimesh.Trimesh):
             glEnableClientState(GL_VERTEX_ARRAY)
@@ -219,6 +261,16 @@ class QPygletWidget(QOpenGLWidget):
                 
                 color = colors[str(color)]
                 glColor3fv(color)
+            if mesh == self.akvarium:             
+                glColor4f(0, 0, 0.5, 0.5)
+                # Render the mesh
+                glBegin(GL_QUADS)
+                for face in mesh.faces:
+                    for vertex in face:
+                        glVertex3fv(mesh.vertices[vertex])
+                glEnd()
+                #mesh.visual.face_colors = [0, 0, 0, 255]
+                mesh.visual.vertex_colors = [255, 255, 255, 255]
             glDrawElements(GL_TRIANGLES, len(mesh.faces) * 3, GL_UNSIGNED_INT, mesh.faces.flatten())
             glDisableClientState(GL_VERTEX_ARRAY)
             glDisableClientState(GL_NORMAL_ARRAY)
@@ -232,4 +284,16 @@ class QPygletWidget(QOpenGLWidget):
             self.xRot -= 5
         elif event.key() == Qt.Key_Down:
             self.xRot += 5
+        elif event.key() == Qt.Key_W:
+            self.camera_position[2]+=0.1
+        elif event.key() == Qt.Key_A:
+            self.camera_position[0]+=0.1
+        elif event.key() == Qt.Key_S:
+            self.camera_position[2]-=0.1
+        elif event.key() == Qt.Key_D:
+            self.camera_position[0]-=0.1
+        elif event.key() == Qt.Key_Space:
+            self.camera_position[1]-=0.1
+        elif event.key() == Qt.Key_Shift:
+            self.camera_position[1]+=0.1
         self.update()

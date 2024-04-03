@@ -15,7 +15,7 @@ max_sidebars_width=400
 info_spacing=80
 class Ui_MainWindow(object):
     def __init__(self) -> None:
-        self.ertekek={
+        self.ertekek:dict={
             "sebesseg":1,
             "ido":100,
             "x":100,
@@ -29,6 +29,7 @@ class Ui_MainWindow(object):
             "y":10000,
             "z":10000
         }
+        self.fps=12
     def setupUi(self, MainWindow:QtWidgets.QMainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(611, 466)
@@ -44,10 +45,14 @@ class Ui_MainWindow(object):
                             #centralwidget,centralwidget,.centralwidget{
                                 border:10px solid red;
                             }
+                            #elozoLepes,#kovetkezoLepes{
+                                border:none;
+                                color:white;                            
+                            }
                             """)
         self.centralwidget.setLayout(self.gridLayout)
         self.centralLayout=QtWidgets.QGridLayout()
-        self.pygletWidget:pyglet.QPygletWidget = pyglet.QPygletWidget(scene=trimesh.load("forrasok/submarine.glb"))
+        self.pygletWidget:pyglet.QPygletWidget = pyglet.QPygletWidget(scene=trimesh.load("forrasok/submarine.glb"),fps=1/self.fps)
         self.pygletWidget.setMinimumSize(100,100)
         self.centralLayout.addWidget(self.pygletWidget)
         self.gridLayout.addLayout(self.centralLayout,0,1,3,1)
@@ -61,6 +66,7 @@ class Ui_MainWindow(object):
         self.elozoLepes.setObjectName("elozoLepes")
         self.elozoLepes.setMinimumSize(150,50)
         self.elozoLepes.setMaximumSize(200,100)
+        self.elozoLepes.setFont(QtGui.QFont('Arial', 30))
         self.elozoLepes.setBaseSize(150,50)
         self.footer.addStretch(1)
         self.footer.addWidget(self.elozoLepes,0)
@@ -75,6 +81,7 @@ class Ui_MainWindow(object):
         self.kovetkezoLepes.setObjectName("kovetkezoLepes")
         self.kovetkezoLepes.setMinimumSize(150,50)
         self.kovetkezoLepes.setMaximumSize(200,100)
+        self.kovetkezoLepes.setFont(QtGui.QFont('Arial', 30))
         self.kovetkezoLepes.setBaseSize(150,50)
         self.footer.addWidget(self.kovetkezoLepes,0)
         self.gridLayout.addLayout(self.footer, 3, 0, 1, 3)
@@ -88,6 +95,20 @@ class Ui_MainWindow(object):
         self.leftsidebar.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
         self.SetValueChangers()
+        
+        self.horizontalSliderFps=QtWidgets.QSlider(self.gridLayoutWidget)
+        self.horizontalSliderFps.setOrientation(QtCore.Qt.Horizontal)
+        self.horizontalSliderFps.setMaximum(60)
+        self.horizontalSliderFps.setMinimum(1)
+        self.horizontalSliderFps.setValue(self.fps)
+        self.labelInfoFps = QtWidgets.QLabel(self.gridLayoutWidget)
+        self.labelInfoFps.setObjectName("labelInfoFps")
+        self.labelInfoFps.setText(f"Fps: {self.fps}")
+        self.horizontalSliderFps.valueChanged.connect(lambda: self.setFps(self.labelInfoFps,self.horizontalSliderFps))
+        self.fpsContainer=QtWidgets.QHBoxLayout()
+        self.fpsContainer.addWidget(self.labelInfoFps)
+        self.fpsContainer.addWidget(self.horizontalSliderFps)
+        self.leftsidebar.addLayout(self.fpsContainer)
         
         self.startSimulacio = QtWidgets.QPushButton(self.gridLayoutWidget)
         self.startSimulacio.setObjectName("startSimulacio")
@@ -128,13 +149,17 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         return 
+    def setFps(self,label:QtWidgets.QLabel,horizantalSlider:QtWidgets.QSlider):
+        self.fps = horizantalSlider.value()
+        label.setText(f"Fps: {self.fps}")
+        self.pygletWidget.fps=1/self.fps
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.elozoLepes.setText(_translate("MainWindow", "⏮️"))
+        self.elozoLepes.setText(_translate("MainWindow", "⏮"))
         self.mostaniLepes.setText(_translate("MainWindow", "nth.lépés"))
         self.kovetkezoLepes.setText(_translate("MainWindow", "⏯️"))
-        self.startSimulacio.setText(_translate("MainWindow", "Start Szimulácio"))
+        self.startSimulacio.setText(_translate("MainWindow", "Start Szimuláció"))
     def ValidateValues(self,lineEdit:QtWidgets.QLineEdit,horizantalSlider:QtWidgets.QSlider,Value:str):
         previousValue=self.ertekek[Value]
         if str(previousValue) == lineEdit.text():
@@ -169,7 +194,7 @@ class Ui_MainWindow(object):
         self.leftsidebar.addWidget(self.horizontalSliderIdo)
         self.labelInfoIdo = QtWidgets.QLabel(self.gridLayoutWidget)
         self.labelInfoIdo.setObjectName("labelInfoIdo")
-        self.labelInfoIdo.setText(f"1{" "*(info_spacing-len(str(self.max_ertekek["ido"])))}{self.max_ertekek["ido"]}")
+        self.labelInfoIdo.setText(f"1{' '*(info_spacing-len(str(self.max_ertekek['ido'])))}{self.max_ertekek['ido']}")
         self.leftsidebar.addWidget(self.labelInfoIdo)
         self.lineEditIdo.setText(str(self.ertekek["ido"]))
         self.horizontalSliderIdo.setMaximum(self.max_ertekek["ido"])
@@ -193,7 +218,7 @@ class Ui_MainWindow(object):
         self.leftsidebar.addWidget(self.horizontalSliderSebesseg)
         self.labelInfoSebesseg = QtWidgets.QLabel(self.gridLayoutWidget)
         self.labelInfoSebesseg.setObjectName("labelInfoSebesseg")
-        self.labelInfoSebesseg.setText(f"1{" "*(info_spacing-len(str(self.max_ertekek["sebesseg"])))}{self.max_ertekek["sebesseg"]}")
+        self.labelInfoSebesseg.setText(f"1{' '*(info_spacing-len(str(self.max_ertekek['sebesseg'])))}{self.max_ertekek['sebesseg']}")
         self.leftsidebar.addWidget(self.labelInfoSebesseg)
         self.lineEditSebesseg.setText(str(self.ertekek["sebesseg"]))
         self.horizontalSliderSebesseg.setMaximum(self.max_ertekek["sebesseg"])
@@ -217,7 +242,7 @@ class Ui_MainWindow(object):
         self.leftsidebar.addWidget(self.horizontalSliderX)
         self.labelInfoX = QtWidgets.QLabel(self.gridLayoutWidget)
         self.labelInfoX.setObjectName("labelInfoX")
-        self.labelInfoX.setText(f"1{" "*(info_spacing-len(str(self.max_ertekek["x"])))}{self.max_ertekek["x"]}")
+        self.labelInfoX.setText(f"1{' '*(info_spacing-len(str(self.max_ertekek['x'])))}{self.max_ertekek['x']}")
         self.leftsidebar.addWidget(self.labelInfoX)
         self.lineEditX.setText(str(self.ertekek["x"]))
         self.horizontalSliderX.setMaximum(self.max_ertekek["x"])
@@ -241,7 +266,7 @@ class Ui_MainWindow(object):
         self.leftsidebar.addWidget(self.horizontalSliderY)
         self.labelInfoY = QtWidgets.QLabel(self.gridLayoutWidget)
         self.labelInfoY.setObjectName("labelInfoY")
-        self.labelInfoY.setText(f"1{" "*(info_spacing-len(str(self.max_ertekek["y"])))}{self.max_ertekek["y"]}")
+        self.labelInfoY.setText(f"1{''*(info_spacing-len(str(self.max_ertekek['y'])))}{self.max_ertekek['y']}")
         self.leftsidebar.addWidget(self.labelInfoY)
         self.lineEditY.setText(str(self.ertekek["y"]))
         self.horizontalSliderY.setMaximum(self.max_ertekek["y"])
@@ -265,7 +290,7 @@ class Ui_MainWindow(object):
         self.leftsidebar.addWidget(self.horizontalSliderZ)
         self.labelInfoZ = QtWidgets.QLabel(self.gridLayoutWidget)
         self.labelInfoZ.setObjectName("labelInfoZ")
-        self.labelInfoZ.setText(f"1{" "*(info_spacing-len(str(self.max_ertekek["z"])))}{self.max_ertekek["z"]}")
+        self.labelInfoZ.setText(f"1{' '*(info_spacing-len(str(self.max_ertekek['z'])))}{self.max_ertekek['z']}")
         self.leftsidebar.addWidget(self.labelInfoZ)
         self.lineEditZ.setText(str(self.ertekek["z"]))
         self.horizontalSliderZ.setMaximum(self.max_ertekek["z"])
@@ -275,6 +300,7 @@ class Ui_MainWindow(object):
         self.horizontalSliderZ.valueChanged.connect(lambda: self.ValidateValues(self.lineEditZ,self.horizontalSliderZ,"z"))
         self.labelZ.setText(_translate("MainWindow", "Akvárium z hosszúsága:"))
         
-        #TODO gyöngyök.txt beszúrása
-        
-        
+        self.gyongyokKivalasztasa = QtWidgets.QPushButton(self.gridLayoutWidget)
+        self.gyongyokKivalasztasa.setObjectName("gyongyokKivalasztasa")
+        self.gyongyokKivalasztasa.setText("Gyöngyök Kiválasztása")
+        self.leftsidebar.addWidget(self.gyongyokKivalasztasa)
