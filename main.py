@@ -22,6 +22,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.path_value=[]
         self.gyongyokFile="gyongyok.txt"
         self.scale=10
+        self.path = os.path.dirname(__file__)
         self.setupUi(self)
         #self.loadFileButton.clicked.connect(self.load_file)
         self.StepStopEvent=threading.Event()
