@@ -262,7 +262,7 @@ class QPygletWidget(QOpenGLWidget):
                 color = colors[str(color)]
                 glColor3fv(color)
             if mesh == self.akvarium:             
-                glColor4f(0, 0, 0.5, 0.5)
+                glColor4f(0, 0, 0.5, 0.1)
                 # Render the mesh
                 glBegin(GL_QUADS)
                 for face in mesh.faces:
