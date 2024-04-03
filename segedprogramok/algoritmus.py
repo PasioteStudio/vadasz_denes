@@ -80,33 +80,33 @@ def getInTime(path_distances:list[float],path_times:list[float],path_points:list
         return path_distances,path_times,path_points,path_value
     #Első szegmens, előről
     temp_path_points_front=[path_points[0]]
-    temp_path_times_front=[]
-    temp_path_distances_front=[]
-    currentTime=0
+    temp_path_times_front=[path_times[0]]
+    temp_path_distances_front=[path_distances[0]]
+    currentTime=path_times[0]
     while currentTime <= time/2:
-        will_be=path_times[len(temp_path_points_front)-1]
+        will_be=path_times[len(temp_path_points_front)]
         if will_be+currentTime <= time/2:
             currentTime+=will_be
             temp_path_points_front.append(path_points[len(temp_path_points_front)])
             temp_path_times_front.append(will_be)
-            temp_path_distances_front.append(path_distances[len(temp_path_points_front)])
+            temp_path_distances_front.append(path_distances[len(temp_path_points_front)-1])
         else:
             break
     #Második szegmens, hátulról
-    temp_path_points_back=[path_points[-1]]
-    temp_path_times_back=[]
-    temp_path_distances_back=[]
-    currentTime=0
     path_times.reverse()
     path_points.reverse()
     path_distances.reverse()
+    currentTime=path_times[0]
+    temp_path_points_back=[path_points[0]]
+    temp_path_times_back=[path_times[0]]
+    temp_path_distances_back=[path_distances[0]]
     while currentTime <= time/2:
-        will_be=path_times[len(temp_path_points_back)-1]
+        will_be=path_times[len(temp_path_points_back)]
         if will_be+currentTime <= time/2:
             currentTime+=will_be
             temp_path_points_back.append(path_points[len(temp_path_points_back)])
             temp_path_times_back.append(will_be)
-            temp_path_distances_back.append(path_distances[len(temp_path_points_back)])
+            temp_path_distances_back.append(path_distances[len(temp_path_points_back)-1])
         else:
             break
     #Összekötjük őket (a hátulról menő arrayt, az elülről menő arrayel)
