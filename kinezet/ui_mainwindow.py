@@ -52,7 +52,7 @@ class Ui_MainWindow(object):
                             """)
         self.centralwidget.setLayout(self.gridLayout)
         self.centralLayout=QtWidgets.QGridLayout()
-        self.pygletWidget:pyglet.QPygletWidget = pyglet.QPygletWidget(scene=trimesh.load(self.path+"/submarine.glb"),fps=1/self.fps)
+        self.pygletWidget:pyglet.QPygletWidget = pyglet.QPygletWidget(scene=trimesh.load(self.ut+"/submarine.glb"),fps=1/self.fps)
         self.pygletWidget.setMinimumSize(100,100)
         self.centralLayout.addWidget(self.pygletWidget)
         self.gridLayout.addLayout(self.centralLayout,0,1,3,1)

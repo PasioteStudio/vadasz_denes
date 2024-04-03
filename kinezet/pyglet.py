@@ -25,7 +25,7 @@ class QPygletWidget(QOpenGLWidget):
         self.stop_event = threading.Event()
         self.gyongyok=[]
         self.akvarium=0
-        self.pathes=[]
+        self.utak=[]
         self.scene = scene
         self.xRot = 0
         self.yRot = 0
@@ -80,8 +80,8 @@ class QPygletWidget(QOpenGLWidget):
                 self.render_mesh(mesh)
         for mesh in self.gyongyok:
             self.render_mesh(mesh)
-        for path in self.pathes:
-            self.render_path(path)
+        for ut in self.utak:
+            self.render_path(ut)
         if self.akvarium != 0:
             self.render_mesh(self.akvarium)
     def resizeGL(self, width, height):
@@ -225,11 +225,11 @@ class QPygletWidget(QOpenGLWidget):
             ])
             gyongyObject.apply_translation(translation_vector)
             self.gyongyok.append(gyongyObject)
-    def setPathes(self,path_points:list[dict],scale:float):
-        for id in range(len(path_points)-1):
-            start_point = [path_points[id]["x"]/scale, path_points[id]["y"]/scale,path_points[id]["z"]/scale]
-            end_point=[path_points[id+1]["x"]/scale, path_points[id+1]["y"]/scale,path_points[id+1]["z"]/scale]
-            self.pathes.append([start_point, end_point])
+    def setPathes(self,ut_pontok:list[dict],scale:float):
+        for id in range(len(ut_pontok)-1):
+            start_point = [ut_pontok[id]["x"]/scale, ut_pontok[id]["y"]/scale,ut_pontok[id]["z"]/scale]
+            end_point=[ut_pontok[id+1]["x"]/scale, ut_pontok[id+1]["y"]/scale,ut_pontok[id+1]["z"]/scale]
+            self.utak.append([start_point, end_point])
     def AkvariumRajzolasa(self,x,y,z,scale):
         self.akvarium  = trimesh.creation.box(extents=[x/scale, y/scale, z/scale])
         translation_vector = np.array([
@@ -239,15 +239,15 @@ class QPygletWidget(QOpenGLWidget):
         ])
         self.akvarium.apply_translation(translation_vector)
     def resetSimulation(self):
-        self.pathes=[]
+        self.utak=[]
         self.gyongyok=[]
         self.akvarium=0
-    def render_path(self,path):
+    def render_path(self,ut):
         glPointSize(5)
         glBegin(GL_LINES)
         glColor3d(1, 0, 0)
-        glVertex4f(path[0][0], path[0][1], path[0][2],1)
-        glVertex4f(path[1][0], path[1][1], path[1][2],1)
+        glVertex4f(ut[0][0], ut[0][1], ut[0][2],1)
+        glVertex4f(ut[1][0], ut[1][1], ut[1][2],1)
         glEnd()
     def render_mesh(self, mesh):
         if isinstance(mesh, trimesh.Trimesh):
