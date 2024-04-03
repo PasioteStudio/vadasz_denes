@@ -1,5 +1,5 @@
 # Futtatás
-Terminálban a mappába belépve: `py main.py`
+Terminálban a mappába belépve: `py main.py`\
 vagy a **main.exe** futtatása
 # Kamera Irányítása:
 **W-S**: előre-hátra
