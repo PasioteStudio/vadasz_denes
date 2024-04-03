@@ -1,5 +1,6 @@
 # Futtatás
 Terminálban a mappába belépve: `py main.py`\
+Előtte érdemes a `pip install -r requirements.txt` parancsot lefuttatni, hogy biztosra tudjuk azt, hogy megvan minden külső könyvtár a projekt futtatásához\
 vagy a **main.exe** futtatása
 # Kamera Irányítása:
 **W-S**: előre-hátra\
