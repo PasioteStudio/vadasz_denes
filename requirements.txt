@@ -9,7 +9,7 @@ pyqtgraph==0.13.4
 trimesh==4.2.2
 scipy==1.12.0
 munkres==1.1.4
-pillow==10.2.0
+pillow==10.3.0
 pyglet==1.5.28
 PyOpenGL-accelerate==3.1.7
 pyparsing==3.1.2
