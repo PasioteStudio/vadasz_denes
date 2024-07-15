@@ -15,4 +15,4 @@ PyOpenGL-accelerate==3.1.7
 pyparsing==3.1.2
 PyQt5-Qt5==5.15.2
 Pygments==2.17.2
-setuptools==69.2.0
+setuptools==70.0.0
